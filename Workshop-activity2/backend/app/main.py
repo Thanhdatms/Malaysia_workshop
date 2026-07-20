@@ -1,11 +1,9 @@
 from pathlib import Path
 
-from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 from .database import create_db_and_tables
 from .routers import admin, analysis, chat, evaluate_steps, process_steps, teams, workflow
@@ -34,5 +32,17 @@ app.include_router(chat.router)
 app.include_router(analysis.router)
 
 FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+
 if FRONTEND_DIST.exists():
-    app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}")
+    def spa_fallback(full_path: str):
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = FRONTEND_DIST / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_DIST / "index.html")

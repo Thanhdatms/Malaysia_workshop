@@ -1,0 +1,67 @@
+# Production stack for the AI Workflow Designer workshop app: one EC2
+# instance, one container serving frontend+backend, one self-hosted
+# Postgres container (no external DB service). Config comes from a ".env"
+# file in this same directory - copy .env.production.example to .env and
+# fill it in before running `docker compose up -d --build`.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-workshop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-workshop}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-workshop} -d ${POSTGRES_DB:-workshop}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-workshop}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-workshop}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_API_BASE: ${DEEPSEEK_API_BASE:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+    expose:
+      - "8000"
+    volumes:
+      # Persists the local data dir across container rebuilds (unused once
+      # DATABASE_URL points at Postgres, but harmless to keep mounted).
+      - app_data:/app/backend/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      # e.g. 54-153-195-100.sslip.io (dashes, not dots) - free DNS that
+      # resolves to your instance's public IP, so Caddy can obtain a real
+      # Let's Encrypt cert without owning a domain. Use a real domain here
+      # instead if you have one pointed at this instance.
+      SITE_DOMAIN: ${SITE_DOMAIN:?set SITE_DOMAIN in .env, e.g. 54-153-195-100.sslip.io}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  app_data:
+  caddy_data:
+  caddy_config:

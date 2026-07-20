@@ -1,17 +1,17 @@
-import os
-
 import httpx
 from fastapi import HTTPException
 
-DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
+from .config import DEEPSEEK_API_BASE, DEEPSEEK_API_KEY, DEEPSEEK_MODEL
+
+DEEPSEEK_API_URL = f"{DEEPSEEK_API_BASE.rstrip('/')}/chat/completions"
 
 
 async def call_deepseek(messages: list[dict], *, json_mode: bool = False, timeout: float = 45.0) -> str:
-    api_key = os.environ.get("DEEPSEEK_API_KEY")
+    api_key = DEEPSEEK_API_KEY
     if not api_key:
         raise HTTPException(status_code=500, detail="AI features are not configured on this server.")
 
-    body = {"model": "deepseek-chat", "messages": messages, "stream": False}
+    body = {"model": DEEPSEEK_MODEL, "messages": messages, "stream": False}
     if json_mode:
         body["response_format"] = {"type": "json_object"}
 

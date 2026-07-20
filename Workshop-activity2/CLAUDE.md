@@ -325,11 +325,21 @@ Workshop-activity2/
   framework.png                 # 5-step framework reference
   workflow.png                  # Step 3c canvas visual target
   images/                       # additional UI reference mockups (step tracker, admin, etc.)
+  Dockerfile                    # multi-stage build: frontend build -> backend + built frontend
+  docker-compose.yml            # prod stack: app + self-hosted Postgres + Caddy (HTTPS)
+  .dockerignore
+  .env.production.example       # copy to ".env" next to docker-compose.yml on the server
+  deploy/
+    Caddyfile                   # reverse-proxies SITE_DOMAIN -> app:8000, auto HTTPS
+    bootstrap_ec2.sh             # one-time: installs Docker + Compose plugin on a fresh box
+    provision_ec2.sh             # optional: creates the EC2 instance itself via AWS CLI
+    deploy.sh                    # rsyncs repo + `docker compose up -d --build` for every redeploy
   backend/
     .env                        # DEEPSEEK_API_KEY (gitignored, create manually)
     app/
-      main.py                   # loads .env, mounts routers + built frontend
-      database.py
+      main.py                   # mounts routers + built frontend w/ SPA fallback
+      config.py                 # loads .env; DEEPSEEK_*, DATABASE_URL
+      database.py                # sqlite locally, Postgres when DATABASE_URL is set (prod)
       models.py                 # Team, ProcessStep, EvaluateStep, WorkflowGraph
       schemas.py
       ai.py                     # call_deepseek() — shared DeepSeek client for all routers
@@ -404,7 +414,57 @@ token via `ADMIN_TOKEN` env var, default `bossard-admin`).
 The SQLite DB lives at `backend/data/app.db`, created + tables auto-migrated on first run.
 Delete that file to reset all teams/progress before a fresh workshop run.
 
-## 11. Open items / to confirm with user
+## 11. Production deployment (AWS EC2, Docker, self-hosted Postgres)
+
+For running the workshop somewhere other than a facilitator's laptop, the app can be deployed
+to a single EC2 instance via Docker Compose — same pattern as the reference project
+(`../Workshop-AIChallange`). This keeps the "frontend and backend on one server" model from
+local dev, but swaps the sqlite file for a real Postgres database (also self-hosted in a
+container on that same instance — no RDS or other external service).
+
+**How it works:**
+- `Dockerfile` (repo root) is a multi-stage build: stage 1 builds the React frontend
+  (`npm run build`), stage 2 installs the FastAPI backend and copies the built frontend into
+  `frontend/dist` alongside it, so the same static-file mount/SPA-fallback logic in
+  `backend/app/main.py` works unchanged inside the container.
+- `docker-compose.yml` (repo root) defines three services: `app` (the image above, port 8000
+  exposed only on the docker network, not published to the host), `db` (`postgres:16-alpine`
+  with a named volume for durable storage), and `caddy` (`caddy:2-alpine`, publishes `80`/`443`
+  on the host and reverse-proxies to `app:8000`). `app` gets `DATABASE_URL` pointed at `db`
+  automatically. Caddy auto-obtains a Let's Encrypt HTTPS cert for `SITE_DOMAIN` (set in `.env`)
+  on first boot — no domain of your own needed, [sslip.io](https://sslip.io) works (e.g.
+  `54-153-195-100.sslip.io` resolves straight to that IP). Config: `deploy/Caddyfile`.
+- `backend/app/database.py` picks Postgres when `DATABASE_URL` is set (production/docker) and
+  falls back to the local sqlite file when it's empty (local dev unchanged) — see
+  `backend/app/config.py` for where `DATABASE_URL`/`DEEPSEEK_*` are read.
+
+**One-time setup:**
+1. (Optional, only if you don't already have an EC2 box) provision one:
+   `AWS_REGION=... KEY_NAME=... CONFIRM=yes ./deploy/provision_ec2.sh` — creates a security
+   group + EC2 instance via the AWS CLI. This creates billed AWS resources; review the script
+   first.
+2. Bootstrap Docker on the instance (installs Docker Engine + Compose plugin, opens
+   22/80/443):
+   `ssh -i <key>.pem ubuntu@<ip> 'bash -s' < deploy/bootstrap_ec2.sh`
+3. Copy `.env.production.example` to `.env` on the server (in the same folder as
+   `docker-compose.yml`) and fill in `POSTGRES_PASSWORD`, `ADMIN_TOKEN`, `SITE_DOMAIN` (a
+   domain — or an [sslip.io](https://sslip.io) hostname derived from the instance's public IP —
+   pointed at this instance, used by Caddy for HTTPS), and (optionally) `DEEPSEEK_API_KEY`.
+4. Make sure the instance's security group allows inbound `443` (HTTPS) as well as `80`/`22` —
+   `bootstrap_ec2.sh` only opens these via `ufw` on the instance itself; on EC2 the AWS security
+   group is the actual firewall and needs the same ports opened there too.
+
+**Deploy / redeploy:**
+```
+EC2_HOST=<public-ip> EC2_USER=ubuntu SSH_KEY=<path-to-key>.pem ./deploy/deploy.sh
+```
+This rsyncs the project to the server and runs `docker compose up -d --build`. It only
+recreates the `app` container — the `db` container and its volume (and Caddy's cert volume)
+are untouched, so team data and the HTTPS cert both survive every redeploy. The app is then
+reachable at `https://<SITE_DOMAIN>/` and the facilitator dashboard at
+`https://<SITE_DOMAIN>/admin` (allow Caddy a minute on first boot to obtain the cert).
+
+## 12. Open items / to confirm with user
 
 - Exact seed list of example AI agent names for the Step 3b autocomplete (currently a
   placeholder set — swap for whatever vocabulary the workshop facilitators actually want to
