@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"/c/Users/ALDA/OneDrive - Bossard AG/Documents/Malaysia_Trip/Workshop-AIChallange\")",
+      "Read(//c/Users/ALDA/OneDrive - Bossard AG/Documents/Malaysia_Trip/Workshop-AIChallange/**)",
+      "Bash(npm --version)",
+      "Bash(mkdir -p \"/c/Users/ALDA/OneDrive - Bossard AG/Documents/Malaysia_Trip/Workshop-activity2/backend/app/routers\" \"/c/Users/ALDA/OneDrive - Bossard AG/Documents/Malaysia_Trip/Workshop-activity2/backend/app/seed\" \"/c/Users/ALDA/OneDrive - Bossard AG/Documents/Malaysia_Trip/Workshop-activity2/backend/data\")",
+      "Bash(python -m venv venv)",
+      "Bash(./venv/Scripts/python.exe -m pip install --quiet --upgrade pip)",
+      "Bash(./venv/Scripts/pip.exe install *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\ALDA\\OneDrive - Bossard AG\\Documents\\Malaysia_Trip\\Workshop-activity2\\backend\\app"
+    ]
+  }
+}

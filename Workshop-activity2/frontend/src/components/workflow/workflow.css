@@ -1,0 +1,162 @@
+.wf-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  height: 68vh;
+  min-height: 520px;
+}
+
+.wf-layout--readonly {
+  grid-template-columns: 1fr;
+}
+
+.wf-layout--compact {
+  height: 420px;
+  min-height: 360px;
+}
+
+.wf-palette {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.wf-palette__title {
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.wf-palette__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: #fafcfd;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 8px;
+  cursor: grab;
+  user-select: none;
+}
+
+.wf-palette__item:active {
+  cursor: grabbing;
+}
+
+.wf-palette__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.wf-canvas {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card-bg);
+}
+
+.wf-node {
+  width: 240px;
+  border: 2px solid;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  font-family: var(--font);
+}
+
+.wf-node__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wf-node__delete {
+  border: none;
+  background: transparent;
+  color: #fff;
+  opacity: 0.8;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.wf-node__delete:hover {
+  opacity: 1;
+}
+
+.wf-node__body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wf-node__title {
+  border: none;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--navy);
+  padding: 2px 0;
+  background: transparent;
+}
+
+.wf-node__title:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.wf-node__desc {
+  border: none;
+  resize: none;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 2px 0;
+  min-height: 32px;
+  background: transparent;
+}
+
+.wf-node__desc:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.react-flow__node-workflowNode {
+  padding: 0;
+  border: none;
+  background: transparent;
+  width: auto;
+}
+
+@media (max-width: 900px) {
+  .wf-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .wf-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .wf-canvas {
+    height: 60vh;
+  }
+}

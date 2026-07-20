@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kịch Bản Đào Tạo AI & Quản Trị Rủi Ro - 40 Phút</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --navy-dark: #0A192F;
+      --blue-primary: #0D6EFD;
+      --blue-accent: #00D2FF;
+      --blue-light: #F0F4FC;
+      --text-dark: #1E293B;
+      --text-muted: #64748B;
+      --white: #FFFFFF;
+      --border-color: rgba(13, 110, 253, 0.08);
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #F8FAFC;
+      color: var(--text-dark);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Header & Navigation */
+    header {
+      background: var(--navy-dark);
+      color: var(--white);
+      padding: 30px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 100%;
+      background: radial-gradient(circle at top right, rgba(0, 210, 255, 0.15), transparent 75%);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-logo h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--white);
+    }
+
+    .header-logo p {
+      font-size: 14px;
+      color: var(--blue-accent);
+      font-weight: 500;
+    }
+
+    .header-badge {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Main Content Dashboard */
+    .dashboard {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 30px;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar-menu {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+    }
+
+    .sidebar-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .timeline-list {
+      list-style: none;
+    }
+
+    .timeline-item-btn {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      transition: all 0.2s ease;
+    }
+
+    .timeline-item-btn:hover {
+      background: var(--blue-light);
+      color: var(--blue-primary);
+    }
+
+    .timeline-item-btn.active {
+      background: var(--blue-primary);
+      color: var(--white);
+    }
+
+    .timeline-time {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-muted);
+    }
+
+    .timeline-item-btn.active .timeline-time {
+      background: rgba(255, 255, 255, 0.2);
+      color: var(--white);
+    }
+
+    /* Playbook Content Area */
+    .playbook-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .section-card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 35px;
+      box-shadow: var(--shadow-sm);
+      display: none;
+    }
+
+    .section-card.active {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--blue-light);
+    }
+
+    .section-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .section-time-tag {
+      background: var(--blue-light);
+      color: var(--blue-primary);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 13px;
+      width: fit-content;
+    }
+
+    .section-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--navy-dark);
+    }
+
+    .slide-ref {
+      font-size: 12px;
+      background: #F1F5F9;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Subsections Inside Cards */
+    .playbook-block {
+      margin-bottom: 25px;
+    }
+
+    .block-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy-dark);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .block-title i {
+      color: var(--blue-primary);
+    }
+
+    /* Blocks Variations */
+    .script-box {
+      background: #F8FAFC;
+      border-left: 4px solid var(--blue-primary);
+      padding: 20px;
+      border-radius: 0 8px 8px 0;
+      font-style: italic;
+      color: #334155;
+      font-size: 14.5px;
+    }
+
+    .danger-box {
+      background: #FFF5F5;
+      border-left: 4px solid #EF4444;
+      padding: 20px;
+      border-radius: 0 8px 8px 0;
+      color: #991B1B;
+      font-size: 14px;
+    }
+
+    .danger-box h5 {
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .interactive-box {
+      background: #F0FDF4;
+      border: 1px dashed #22C55E;
+      padding: 20px;
+      border-radius: 8px;
+      color: #166534;
+      font-size: 14px;
+    }
+
+    .interactive-box h5 {
+      font-weight: 700;
+      color: #14532D;
+      margin-bottom: 6px;
+    }
+
+    .bullet-points {
+      padding-left: 20px;
+      font-size: 14.5px;
+    }
+
+    .bullet-points li {
+      margin-bottom: 8px;
+    }
+
+    .bullet-points strong {
+      color: var(--navy-dark);
+    }
+
+    /* Technical Integration Note */
+    .technical-ref {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, #112240 100%);
+      color: var(--white);
+      padding: 25px;
+      border-radius: 12px;
+      margin-top: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .technical-ref-text h4 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--blue-accent);
+      margin-bottom: 5px;
+    }
+
+    .technical-ref-text p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .technical-btn {
+      background: var(--blue-primary);
+      color: var(--white);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .technical-btn:hover {
+      background: var(--blue-accent);
+      color: var(--navy-dark);
+    }
+
+    /* Utility Footer inside UI */
+    .playbook-footer {
+      max-width: 1200px;
+      margin: 0 auto 50px auto;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-container">
+      <div class="header-logo">
+        <h1>SỔ TAY GIẢNG VIÊN (TRAINER'S PLAYBOOK)</h1>
+        <p>Đào tạo nội bộ: Ứng Dụng AI & Quản Trị Rủi Ro Trong 40 Phút</p>
+      </div>
+      <span class="header-badge"><i class="fa-solid fa-clock"></i> Khung Thời Gian Chuẩn</span>
+    </div>
+  </header>
+
+  <!-- DASHBOARD WRAPPER -->
+  <div class="dashboard">
+    
+    <!-- SIDEBAR NAV -->
+    <nav class="sidebar-menu">
+      <div class="sidebar-title">Nội dung 40 Phút</div>
+      <ul class="timeline-list">
+        <li>
+          <button class="timeline-item-btn active" onclick="showTab(0)">
+            <span class="timeline-time">5 Phút</span>
+            <span>Khởi Động & Đặt Vấn Đề</span>
+          </button>
+        </li>
+        <li>
+          <button class="timeline-item-btn" onclick="showTab(1)">
+            <span class="timeline-time">10 Phút</span>
+            <span>Kịch Bản & Quy Trình</span>
+          </button>
+        </li>
+        <li>
+          <button class="timeline-item-btn" onclick="showTab(2)">
+            <span class="timeline-time">17 Phút</span>
+            <span>4 Trụ Cột Rủi Ro</span>
+          </button>
+        </li>
+        <li>
+          <button class="timeline-item-btn" onclick="showTab(3)">
+            <span class="timeline-time">5 Phút</span>
+            <span>Kiểm Soát Con Người</span>
+          </button>
+        </li>
+        <li>
+          <button class="timeline-item-btn" onclick="showTab(4)">
+            <span class="timeline-time">3 Phút</span>
+            <span>Kế Hoạch & Hỏi Đáp</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- CONTENT FLOW -->
+    <main class="playbook-flow">
+
+      <!-- PHẦN 1: KHỞI ĐỘNG -->
+      <section class="section-card active" id="part0">
+        <div class="section-header">
+          <div class="section-meta">
+            <span class="section-time-tag">00:00 - 05:00 | Khởi động & Nhập cuộc</span>
+            <h2 class="section-title">Tại sao lại là Customer Support & Communications?</h2>
+          </div>
+          <span class="slide-ref">Tương ứng Slide 1 &amp; Slide 2</span>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-bullseye"></i> Mục tiêu đào tạo</h4>
+          <p>Tạo sự hứng thú ngay lập tức, giải thích lý do doanh nghiệp lựa chọn mảng **Dịch vụ khách hàng và Giao tiếp** làm "vùng thử nghiệm" (Sandbox) cho toàn thể đội ngũ thay vì các mảng kỹ thuật phức tạp khác.</p>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-microphone-lines"></i> Kịch bản gợi ý dẫn dắt</h4>
+          <div class="script-box">
+            "Chào anh chị em trong doanh nghiệp. Hôm nay chúng ta cùng nói về AI. Để tất cả các phòng ban, từ Sales, HR cho tới Kế toán đều có chung một hệ quy chiếu và dễ dàng áp dụng nhất, chúng ta sẽ bắt đầu thử nghiệm từ một domain mà bất kỳ ai cũng phải thao tác hàng ngày: <strong>Dịch vụ Khách hàng & Giao tiếp Doanh nghiệp</strong>. Dù ở vị trí nào, chúng ta cũng đều phải viết email, giải đáp thắc mắc nội bộ, hoặc tư vấn cho khách hàng. Đây là mảnh đất hoàn hảo nhất để tối ưu hiệu suất bằng AI, nhưng cũng là nơi dễ phơi bày các rủi ro cốt tử nếu thiếu kiểm soát."
+          </div>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-circle-question"></i> Câu hỏi tương tác nhanh (Icebreaker)</h4>
+          <div class="interactive-box">
+            <h5>Hỏi khán giả:</h5>
+            <p>"Trong phòng này, có ai từng mất hơn 15 phút chỉ để nghĩ cách soạn một email phản hồi lịch sự cho một đối tác hoặc khách hàng đang phàn nàn không? Hãy giơ tay nếu anh chị muốn rút ngắn thời gian đó xuống còn 15 giây."</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PHẦN 2: KỊCH BẢN & QUY TRÌNH -->
+      <section class="section-card" id="part1">
+        <div class="section-header">
+          <div class="section-meta">
+            <span class="section-time-tag">05:00 - 15:00 | Kịch bản Ứng dụng</span>
+            <h2 class="section-title">Hệ Sinh Thái AI Thực Tế & So Sánh Quy Trình</h2>
+          </div>
+          <span class="slide-ref">Tương ứng Slide 3</span>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-diagram-project"></i> Trọng tâm phân tích</h4>
+          <p>Làm rõ hai kịch bản ứng dụng cốt lõi:</p>
+          <ul class="bullet-points">
+            <li><strong>Chatbots phản hồi 24/7:</strong> Giải quyết nhanh các câu hỏi lặp đi lặp lại (FAQs).</li>
+            <li><strong>Trợ lý soạn thảo Email/Văn bản:</strong> Tự phân loại sắc thái, gợi ý dàn ý, viết nháp phản hồi nhanh chóng.</li>
+          </ul>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-microphone-lines"></i> Kịch bản gợi ý dẫn dắt</h4>
+          <div class="script-box">
+            "Khi đưa AI vào quy trình giao tiếp, chúng ta không để AI tự hoạt động tự phát. Hãy nhìn vào sự thay đổi: Trước đây, quy trình xử lý của một chuyên viên là: Đọc thư -> Tra cứu chính sách bằng tay -> Suy nghĩ soạn thảo nháp -> Chờ sếp duyệt -> Gửi đi. Với trợ lực của AI, bước tra cứu chính sách và soạn thảo bản nháp được rút gọn chỉ bằng một nút bấm. Hãy xem AI như một trợ lý cần cù nhất, giúp bạn giải quyết 80% công việc soạn thảo thô sơ."
+          </div>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo thực tế</h4>
+          <div class="danger-box">
+            <h5>Điểm mù:</h5>
+            <p>Tránh việc nhân viên copy-paste nguyên văn câu trả lời của AI mà không đọc lại. Hãy nhấn mạnh: "AI tạo ra văn bản thô, nhưng chính con người mới là người thổi hồn và chịu trách nhiệm pháp lý cho nội dung đó."</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PHẦN 3: 4 TRỤ CỘT RỦI RO -->
+      <section class="section-card" id="part2">
+        <div class="section-header">
+          <div class="section-meta">
+            <span class="section-time-tag">15:00 - 32:00 | Chuyên đề cốt lõi</span>
+            <h2 class="section-title">Vạch Trần & Quản Trị 4 Trụ Cột Rủi Ro</h2>
+          </div>
+          <span class="slide-ref">Tương ứng Slide 4, 5, 6, 7, 8 &amp; 9</span>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-shield-halved"></i> 1. Bảo Mật (Security) - (Thời lượng: 4 phút)</h4>
+          <ul class="bullet-points">
+            <li><strong>Vấn đề:</strong> Nhân viên đưa dữ liệu cá nhân khách hàng (PII) hoặc bí mật kinh doanh lên ChatGPT công cộng. Dữ liệu này sẽ được dùng để huấn luyện mô hình và có nguy cơ rò rỉ.</li>
+            <li><strong>Giải pháp phòng ngừa:</strong> Bắt buộc dùng tài khoản AI Enterprise (nội bộ, mã hóa dữ liệu đầu cuối).</li>
+            <li><strong>Kịch bản nói:</strong> <i>"Hãy nhớ nguyên tắc vàng: Không đưa những gì bạn không muốn đối thủ nhìn thấy lên các hộp chat công cộng miễn phí."</i></li>
+          </ul>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-gavel"></i> 2. Tuân Thủ (Compliance) - (Thời lượng: 4 phút)</h4>
+          <ul class="bullet-points">
+            <li><strong>Vấn đề:</strong> AI tự ý cam kết chính sách bồi thường sai luật hoặc phát ngôn xúc phạm, định kiến với người dùng. Vi phạm Nghị định 13 của Chính phủ về bảo vệ dữ liệu cá nhân.</li>
+            <li><strong>Giải pháp phòng ngừa:</strong> Định hướng nghiêm ngặt bằng Prompt Hệ thống (System Prompt) và bộ lọc chặn từ khóa thô tục.</li>
+          </ul>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-arrows-spin"></i> 3. Tính Nhất Quán (Consistency) - (Thời lượng: 5 phút)</h4>
+          <ul class="bullet-points">
+            <li><strong>Vấn đề:</strong> AI "ảo tưởng" (Hallucination). Cùng một câu hỏi về giá nhưng lần này trả lời giá A, lần sau trả lời giá B.</li>
+            <li><strong>Giải pháp phòng ngừa:</strong> Sử dụng kiến trúc RAG (Retrieval-Augmented Generation) - buộc AI chỉ trả lời dựa trên "Sách tri thức nội bộ" được cung cấp sẵn.</li>
+          </ul>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-file-invoice-dollar"></i> 4. Chi Phí (Cost) - (Thời lượng: 4 phút)</h4>
+          <ul class="bullet-points">
+            <li><strong>Vấn đề:</strong> Chi phí Token ẩn. Prompt quá dài hoặc gọi API vô tội vạ sẽ làm ngân sách công ty thâm hụt nặng nề.</li>
+            <li><strong>Giải pháp:</strong> Tối ưu hóa câu lệnh, quản trị hệ thống API tập trung. Giải thích biểu đồ xu thế giảm chi phí khi kiểm soát bằng RAG ở Slide 9.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- PHẦN 4: KIỂM SOÁT CON NGƯỜI -->
+      <section class="section-card" id="part3">
+        <div class="section-header">
+          <div class="section-meta">
+            <span class="section-time-tag">32:00 - 37:00 | Cơ chế kiểm duyệt</span>
+            <h2 class="section-title">Quy Trình Human-in-the-Loop & Phê Duyệt</h2>
+          </div>
+          <span class="slide-ref">Tương ứng Slide 10</span>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-people-arrows"></i> Con người là chốt chặn cuối cùng</h4>
+          <p>Phân tích 4 bước kiểm duyệt chặt chẽ:</p>
+          <ol class="bullet-points">
+            <li><strong>Nhận diện và Lọc:</strong> Cắt bỏ các yếu tố nhạy cảm (Tự động).</li>
+            <li><strong>Truy xuất tri thức:</strong> Trích xuất dữ liệu nội bộ chuẩn mực (Tự động qua RAG).</li>
+            <li><strong>Chuyên viên Phê duyệt:</strong> Con người kiểm tra độ chính xác, sửa đổi nếu cần và gửi đi (Thủ công - Bắt buộc).</li>
+            <li><strong>Tích lũy hoàn thiện:</strong> Ghi nhận chỉnh sửa để huấn luyện mô hình ngày một thông minh hơn.</li>
+          </ol>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-microphone-lines"></i> Kịch bản gợi ý dẫn dắt</h4>
+          <div class="script-box">
+            "Công thức thành công của chúng ta không phải là 'AI thay thế con người', mà là 'AI tạo đà, con người làm chốt chặn'. Quy trình Human-in-the-Loop đảm bảo rằng mọi văn bản rời khỏi công ty đều đã qua lăng kính thẩm định của chuyên viên có kinh nghiệm. Điều này giúp loại bỏ hoàn toàn các lỗi ngớ ngẩn do AI ảo tưởng gây ra."
+          </div>
+        </div>
+      </section>
+
+      <!-- PHẦN 5: KẾ HOẠCH & HỎI ĐÁP -->
+      <section class="section-card" id="part4">
+        <div class="section-header">
+          <div class="section-meta">
+            <span class="section-time-tag">37:00 - 40:00 | Tổng kết & Hỏi đáp</span>
+            <h2 class="section-title">Kế Hoạch Hành Động & Giải Đáp Thắc Mắc</h2>
+          </div>
+          <span class="slide-ref">Tương ứng Slide 11 &amp; Slide 12</span>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-road"></i> Lộ trình chuyển giao hành động</h4>
+          <p>Nhân viên cần làm gì ngay sau buổi đào tạo?</p>
+          <ul class="bullet-points">
+            <li><strong>Tuần 1:</strong> Hoàn thành bài kiểm tra an toàn dữ liệu cá nhân (Nghị định 13) và nhận tài khoản AI Enterprise chính thức.</li>
+            <li><strong>Tuần 2:</strong> Thực hành viết Prompt trên cổng thông tin nội bộ của công ty.</li>
+          </ul>
+        </div>
+
+        <div class="playbook-block">
+          <h4 class="block-title"><i class="fa-solid fa-comments"></i> Hướng dẫn trả lời một số câu hỏi khó từ nhân viên</h4>
+          <div class="interactive-box" style="margin-bottom: 15px;">
+            <h5>Q1: Sử dụng AI có làm tôi bị mất việc hay không?</h5>
+            <p><strong>Trả lời mẫu:</strong> "AI không thay thế bạn, nhưng người biết dùng AI thành thạo để tăng hiệu suất công việc gấp 3 lần chắc chắn sẽ thay thế người không biết dùng AI. Đây là cơ hội để bạn nâng cấp năng lực bản thân."</p>
+          </div>
+          <div class="interactive-box">
+            <h5>Q2: Làm sao để tôi biết một câu trả lời của AI là hoàn toàn chính xác?</h5>
+            <p><strong>Trả lời mẫu:</strong> "Bằng cách đối chiếu nó với Sách hướng dẫn nội bộ và kinh nghiệm thực tế của bạn. AI chỉ là người đề xuất, bạn mới là người đưa ra quyết định cuối cùng."</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TECHNICAL SOURCE INTEGRATION -->
+      <div class="technical-ref">
+        <div class="technical-ref-text">
+          <h4><i class="fa-solid fa-code"></i> Tài liệu quy chuẩn kỹ thuật nội bộ</h4>
+          <p>Để cấu hình thông số API, chi tiết Prompt hệ thống và thiết lập RAG, vui lòng tham chiếu trực tiếp file kỹ thuật <strong>requirement_engineering.html</strong>.</p>
+        </div>
+        <a href="requirement_engineering.html" class="technical-btn" target="_blank">
+          Mở File Kỹ Thuật <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- PLAYBOOK FOOTER -->
+  <footer class="playbook-footer">
+    Bản quyền tài liệu huấn luyện nội bộ &copy; 2026. Doanh nghiệp của bạn song hành cùng Công nghệ Trí tuệ Nhân tạo An toàn.
+  </footer>
+
+  <!-- SIMPLE INTERACTIVE CONTROLLERS -->
+  <script>
+    function showTab(index) {
+      // Hide all tabs
+      const cards = document.querySelectorAll('.section-card');
+      cards.forEach(card => card.classList.remove('active'));
+
+      // Show targeted tab
+      const targetCard = document.getElementById(`part${index}`);
+      if(targetCard) {
+        targetCard.classList.add('active');
+      }
+
+      // Update Active Navigation Item
+      const buttons = document.querySelectorAll('.timeline-item-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      buttons[index].classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

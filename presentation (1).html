@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Introduction and Training for Staff</title>
+    <style>
+        :root {
+            --primary-blue: #004B87;
+            --secondary-blue: #0078D4;
+            --accent-cyan: #00BCF2;
+            --dark-navy: #0A2540;
+            --text-main: #1C2434;
+            --text-muted: #64748B;
+            --bg-light: #F8FAFC;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0F172A;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Slide Container Setup */
+        .slide {
+            background-color: var(--white);
+            width: 1280px;
+            height: 720px;
+            position: absolute;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(var(--scale, 1));
+            transform-origin: center center;
+            display: none;
+            flex-direction: column;
+            padding: 60px 80px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 1;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 2;
+        }
+
+        /* Title Slide Layout */
+        .slide.title-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 100px;
+        }
+
+        .slide.title-slide::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0,188,242,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+        }
+
+        .title-slide h1 {
+            font-size: 52px;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            color: var(--white);
+            max-width: 900px;
+        }
+
+        .title-slide h2 {
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--accent-cyan);
+            margin-bottom: 48px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .title-slide .meta-box {
+            border-left: none;
+            border-top: 2px solid var(--secondary-blue);
+            padding-left: 0;
+            padding-top: 20px;
+            font-size: 16px;
+            color: #E2E8F0;
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        /* Standard Slide Layout Elements */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #F1F5F9;
+            padding-bottom: 20px;
+        }
+
+        .slide-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--dark-navy);
+        }
+
+        .slide-subtitle {
+            font-size: 16px;
+            color: var(--secondary-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .slide-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 80px;
+            right: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid #E2E8F0;
+            padding-top: 15px;
+        }
+
+        .slide-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 30px;
+            align-content: center;
+            justify-content: center;
+            margin-bottom: 40px; /* Thêm khoảng trống nhỏ phía dưới để không đè vào footer */
+        }
+
+        /* Component Blocks */
+        .col-12 { grid-column: span 12; }
+        .col-6  { grid-column: span 6; }
+        .col-4  { grid-column: span 4; }
+
+        .card {
+            background-color: var(--bg-light);
+            border-radius: 6px;
+            padding: 30px;
+            border-top: 4px solid var(--secondary-blue);
+        }
+
+        .card h3 {
+            font-size: 22px;
+            color: var(--dark-navy);
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        /* Lists and bullets styling */
+        ul.professional-list {
+            list-style: none;
+        }
+
+        ul.professional-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        ul.professional-list li::before {
+            content: "■";
+            position: absolute;
+            left: 0;
+            color: var(--accent-cyan);
+            font-size: 14px;
+        }
+
+        /* Agenda / Table of Contents Specific Styling */
+        .agenda-grid {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Đổi sang 3 cột để căn giữa trải ngang đều đẹp mắt */
+            gap: 20px;
+            width: 100%;
+        }
+
+        .agenda-item {
+            background: var(--bg-light);
+            padding: 25px 25px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column; /* Chuyển thành dạng khối cột dọc để cân đối theo chiều ngang */
+            align-items: center;
+            text-align: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: none;
+            border-top: 5px solid var(--secondary-blue);
+        }
+
+        .agenda-item:hover {
+            background: #F0FDF4;
+            transform: translateY(-5px); /* Hiệu ứng nổi lên trên thay vì tràn sang phải */
+            border-top-color: var(--accent-cyan);
+        }
+
+        .agenda-num {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            background: #E0F2FE;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .agenda-text h3 {
+            font-size: 18px;
+            color: var(--dark-navy);
+            margin-bottom: 5px;
+        }
+
+        /* Timeline Component */
+        .timeline-container {
+            grid-column: span 12;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+        }
+
+        .timeline-container::before {
+            content: "";
+            position: absolute;
+            top: 25px;
+            left: 5%;
+            right: 5%;
+            height: 4px;
+            background-color: #E2E8F0;
+            z-index: 1;
+        }
+
+        .timeline-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 22%;
+        }
+
+        .timeline-dot {
+            width: 54px;
+            height: 54px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            margin: 0 auto 15px auto;
+            border: 4px solid var(--white);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-step.active .timeline-dot {
+            background-color: var(--accent-cyan);
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--dark-navy);
+            margin-bottom: 8px;
+        }
+
+        .timeline-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Math Display styling */
+        .math-box {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+            font-size: 24px;
+            background-color: #F0F7FF;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            color: var(--primary-blue);
+            margin: 15px 0;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        /* Stat / KPI Grid */
+        .stat-grid {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .stat-item {
+            background: var(--bg-light);
+            border-radius: 6px;
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--secondary-blue);
+        }
+
+        .stat-number {
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Comparison Table */
+        .compare-table {
+            grid-column: span 12;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+
+        .compare-table th {
+            background-color: var(--dark-navy);
+            color: var(--white);
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .compare-table th:first-child { border-top-left-radius: 6px; }
+        .compare-table th:last-child { border-top-right-radius: 6px; }
+
+        .compare-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid #E2E8F0;
+            color: var(--text-main);
+        }
+
+        .compare-table tr:nth-child(even) td {
+            background-color: var(--bg-light);
+        }
+
+        /* Quote / Highlight Block */
+        .quote-block {
+            grid-column: span 12;
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white);
+            border-radius: 8px;
+            padding: 45px 60px;
+            text-align: center;
+        }
+
+        .quote-block p {
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .quote-block span {
+            display: block;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Image / Diagram Placeholder */
+        .img-placeholder {
+            background-color: var(--bg-light);
+            border: 2px dashed #CBD5E1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            min-height: 220px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Closing / Thank You Slide */
+        .slide.closing-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .closing-slide h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .closing-slide p {
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 6px;
+        }
+
+        /* Interactive Navigation Controls Overlay */
+        .nav-controls {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:hover {
+            background-color: var(--primary-blue);
+        }
+
+        /* Click Zones on Edges */
+        .click-zone {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            z-index: 10;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 32px;
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .click-zone:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .click-zone-left { left: 0; }
+        .click-zone-right { right: 0; }
+    </style>
+</head>
+<body>
+
+    <!-- Transparent Edge Click Zones -->
+    <div class="click-zone click-zone-left" onclick="prevSlide(event)">&#10094;</div>
+    <div class="click-zone click-zone-right" onclick="nextSlide(event)">&#10095;</div>
+
+    <!-- Global Navigation Buttons inside Slide Footer View Area -->
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="prevSlide(event)">Back</button>
+        <button class="nav-btn" onclick="toggleFullscreen(event)" id="fsBtn">Full Screen</button>
+        <button class="nav-btn" onclick="nextSlide(event)">Next</button>
+    </div>
+
+    <!-- SLIDE 1: Title Slide -->
+    <section class="slide title-slide active" id="slide-1">
+        <h2>Corporate Training Framework</h2>
+        <h1>Introduction to Artificial Intelligence & Enterprise Workflows</h1>
+        <div class="meta-box">
+            <p><strong>Prepared for:</strong> Internal Staff & Strategy Teams</p>
+            <p><strong>Theme:</strong> Technology, Implementation & Operational Excellence</p>
+        </div>
+    </section>
+
+    <!-- SLIDE 2: Table of Contents / Agenda -->
+    <section class="slide" id="slide-2">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Agenda</div>
+                <div class="slide-title">Mục lục nội dung chương trình</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <div class="agenda-grid">
+                <div class="agenda-item" onclick="goToSlide(3)">
+                    <div class="agenda-num">01</div>
+                    <div class="agenda-text">
+                        <h3>Training Objectives & Core Focus</h3>
+                        <p style="font-size:13px; color:var(--text-muted)">Tổng quan mục tiêu đào tạo nhân sự</p>
+                    </div>
+                </div>
+                <div class="agenda-item" onclick="goToSlide(4)">
+                    <div class="agenda-num">02</div>
+                    <div class="agenda-text">
+                        <h3>The Mechanics of Machine Learning</h3>
+                        <p style="font-size:13px; color:var(--text-muted)">Cơ sở kỹ thuật và tối ưu toán học</p>
+                    </div>
+                </div>
+                <div class="agenda-item" onclick="goToSlide(5)">
+                    <div class="agenda-num">03</div>
+                    <div class="agenda-text">
+                        <h3>Implementation Roadmap</h3>
+                        <p style="font-size:13px; color:var(--text-muted)">Lộ trình triển khai thực tế tại các phòng ban</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 2</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 3: Objectives -->
+    <section class="slide" id="slide-3">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Overview</div>
+                <div class="slide-title">Training Objectives & Core Focus</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <div class="col-6">
+                <div class="card" style="height: 100%;">
+                    <h3>Demystifying AI for Operations</h3>
+                    <p style="margin-bottom: 15px;">Transitioning from conceptual awareness to functional application within everyday professional environments.</p>
+                    <ul class="professional-list">
+                        <li>Understanding Core Paradigms (ML, Computer Vision, NLP)</li>
+                        <li>Identifying high-value automation opportunities</li>
+                        <li>Mitigating operational risks and ensuring data security</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card" style="border-top-color: var(--accent-cyan); height: 100%;">
+                    <h3>Key Strategic Drivers</h3>
+                    <p style="margin-bottom: 20px;">Why integrating artificial intelligence into infrastructure matters today:</p>
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: var(--dark-navy);">Efficiency Scaling:</strong>
+                        <p style="font-size:14px;">Automating repetitive analytical tasks to free human resource capacity.</p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--dark-navy);">Data-Driven Accuracy:</strong>
+                        <p style="font-size:14px;">Utilizing mathematical optimizations to eliminate cognitive bias and human errors.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 3</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 4: Foundations & Mathematics -->
+    <section class="slide" id="slide-4">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Technical Foundations</div>
+                <div class="slide-title">The Mechanics of Machine Learning</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <div class="col-4">
+                <div class="card">
+                    <h3>1. Data Input</h3>
+                    <p>Structured matrices or unstructured inputs processed into standardized numerical tensors.</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card" style="border-top-color: var(--accent-cyan);">
+                    <h3>2. Optimization</h3>
+                    <p>Iterative parameter adjustment using mathematical cost minimization techniques.</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card">
+                    <h3>3. Inference</h3>
+                    <p>Production deployments delivering predictions, classifications, or automated insights.</p>
+                </div>
+            </div>
+            <div class="col-12" style="margin-top: 10px;">
+                <h3 style="color: var(--dark-navy); margin-bottom: 10px; font-size: 18px;">Core System Principle</h3>
+                <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 10px;">Every artificial intelligence solution minimizes structural risk via an explicit objective function:</p>
+                <div class="math-box">
+                    L(θ) = 1/n ∑<sub>i=1</sub><sup>n</sup> ℓ(f(x<sub>i</sub>; θ), y<sub>i</sub>) + λR(θ)
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 4</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 5: Roadmap -->
+    <section class="slide" id="slide-5">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Execution</div>
+                <div class="slide-title">Implementation Roadmap</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <div class="timeline-container">
+                <div class="timeline-step active">
+                    <div class="timeline-dot">01</div>
+                    <div class="timeline-title">Assessment</div>
+                    <div class="timeline-desc">Auditing infrastructure and identifying departmental workflow bottlenecks.</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-dot">02</div>
+                    <div class="timeline-title">Staff Training</div>
+                    <div class="timeline-desc">Hands-on technical workshops and functional alignment exercises.</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-dot">03</div>
+                    <div class="timeline-title">Pilot Phase</div>
+                    <div class="timeline-desc">Deploying localized automation scripts within target test groups.</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-dot">04</div>
+                    <div class="timeline-title">Full Integration</div>
+                    <div class="timeline-desc">Seamless enterprise wide activation and feedback evaluation loops.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 5</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 6: Use Cases / KPI Stats -->
+    <section class="slide" id="slide-6">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Business Impact</div>
+                <div class="slide-title">Use Cases & Measurable Outcomes</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-number">38%</div>
+                    <div class="stat-label">Faster Report Cycles</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2.4x</div>
+                    <div class="stat-label">Throughput Increase</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">17h</div>
+                    <div class="stat-label">Saved per Week / Team</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">92%</div>
+                    <div class="stat-label">Staff Adoption Rate</div>
+                </div>
+            </div>
+            <div class="col-12" style="margin-top: 25px;">
+                <div class="card">
+                    <h3>Where AI Creates the Most Value</h3>
+                    <ul class="professional-list">
+                        <li>Document summarization and customer correspondence drafting</li>
+                        <li>Automated anomaly detection across operational data streams</li>
+                        <li>Predictive scheduling and resource allocation planning</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 6</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 7: Comparison Table -->
+    <section class="slide" id="slide-7">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Before & After</div>
+                <div class="slide-title">Traditional Workflow vs. AI-Augmented Workflow</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Process Stage</th>
+                        <th>Traditional Approach</th>
+                        <th>AI-Augmented Approach</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data Entry</td>
+                        <td>Manual input, prone to error</td>
+                        <td>Automated extraction & validation</td>
+                    </tr>
+                    <tr>
+                        <td>Reporting</td>
+                        <td>Days to compile</td>
+                        <td>Generated in minutes</td>
+                    </tr>
+                    <tr>
+                        <td>Decision Support</td>
+                        <td>Experience-based judgment only</td>
+                        <td>Data-driven predictive insight</td>
+                    </tr>
+                    <tr>
+                        <td>Quality Control</td>
+                        <td>Periodic manual sampling</td>
+                        <td>Continuous automated monitoring</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 7</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 8: Risk & Governance -->
+    <section class="slide" id="slide-8">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Responsible Adoption</div>
+                <div class="slide-title">Governance, Risk & Data Security</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <div class="col-6">
+                <div class="card" style="height: 100%;">
+                    <h3>Governance Principles</h3>
+                    <ul class="professional-list">
+                        <li>Human-in-the-loop review for high-impact decisions</li>
+                        <li>Clear accountability for AI-assisted outputs</li>
+                        <li>Documented approval workflows for new use cases</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card" style="border-top-color: var(--accent-cyan); height: 100%;">
+                    <h3>Data Security Safeguards</h3>
+                    <ul class="professional-list">
+                        <li>No confidential data shared with public-facing tools</li>
+                        <li>Role-based access controls on internal AI platforms</li>
+                        <li>Regular audits of model usage and outputs</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 8</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 9: Key Takeaway / Quote -->
+    <section class="slide" id="slide-9">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Summary</div>
+                <div class="slide-title">Key Takeaway</div>
+            </div>
+        </div>
+        <div class="slide-body">
+            <div class="quote-block">
+                <p>"AI does not replace professional judgment — it amplifies it, removing repetitive friction so teams can focus on higher-value decisions."</p>
+                <span>Strategy & Technology Office</span>
+            </div>
+            <div class="col-12" style="margin-top: 25px;">
+                <div class="img-placeholder">
+                    [ Insert team photo, architecture diagram, or supporting visual here ]
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Enterprise AI Training Series</span>
+            <span>Slide 9</span>
+        </div>
+    </section>
+
+    <!-- SLIDE 10: Closing / Thank You -->
+    <section class="slide closing-slide" id="slide-10">
+        <h1>Thank You</h1>
+        <p>Questions & Open Discussion</p>
+        <p>strategy.team@enterprise.com&nbsp;&nbsp;|&nbsp;&nbsp;Internal Use Only</p>
+    </section>
+
+    <script>
+        let currentSlideIndex = 1;
+        const totalSlides = 10;
+
+        function showSlide(index) {
+            if (index < 1 || index > totalSlides) return;
+            
+            // Remove active status from all slides
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            // Show requested slide
+            const targetSlide = document.getElementById(`slide-${index}`);
+            if (targetSlide) {
+                targetSlide.classList.add('active');
+                currentSlideIndex = index;
+            }
+        }
+
+        function nextSlide(event) {
+            if(event) event.stopPropagation(); // prevent triggering backdrop clicks
+            if (currentSlideIndex < totalSlides) {
+                showSlide(currentSlideIndex + 1);
+            }
+        }
+
+        function prevSlide(event) {
+            if(event) event.stopPropagation();
+            if (currentSlideIndex > 1) {
+                showSlide(currentSlideIndex - 1);
+            }
+        }
+
+        function goToSlide(index) {
+            showSlide(index);
+        }
+
+        // Keyboard Arrow Keys Navigation support
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                prevSlide();
+            } else if (event.key === 'f' || event.key === 'F') {
+                toggleFullscreen();
+            }
+        });
+
+        function toggleFullscreen(event) {
+            if (event) event.stopPropagation();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', function() {
+            const btn = document.getElementById('fsBtn');
+            if (btn) btn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Full Screen';
+            fitSlide();
+        });
+
+        function fitSlide() {
+            const scaleX = window.innerWidth / 1280;
+            const scaleY = window.innerHeight / 720;
+            const scale = Math.min(scaleX, scaleY) * 0.96;
+            document.documentElement.style.setProperty('--scale', scale);
+        }
+
+        window.addEventListener('resize', fitSlide);
+        fitSlide();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Training Workshop – Morning Session</title>
+    <style>
+        :root {
+            --primary-blue: #004B87;
+            --secondary-blue: #0078D4;
+            --accent-cyan: #00BCF2;
+            --dark-navy: #0A2540;
+            --text-main: #1C2434;
+            --text-muted: #64748B;
+            --bg-light: #F8FAFC;
+            --white: #FFFFFF;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0F172A;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .slide {
+            background-color: var(--white);
+            width: 1280px;
+            height: 720px;
+            position: absolute;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(var(--scale, 1));
+            transform-origin: center center;
+            display: none;
+            flex-direction: column;
+            padding: 50px 70px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 1;
+        }
+        .slide.active { display: flex; opacity: 1; z-index: 2; }
+
+        /* Title Slide */
+        .slide.title-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 100px;
+        }
+        .slide.title-slide::after {
+            content: "";
+            position: absolute;
+            bottom: -100px; right: -100px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(0,188,242,0.18) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+        }
+        .title-slide .badge {
+            display: inline-block;
+            background: rgba(0,188,242,0.2);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 20px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+        }
+        .title-slide h1 {
+            font-size: 54px;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            color: var(--white);
+        }
+        .title-slide h2 {
+            font-size: 22px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 44px;
+        }
+        .title-slide .meta-box {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 24px;
+            font-size: 15px;
+            color: #CBD5E1;
+            display: flex;
+            gap: 48px;
+            justify-content: center;
+        }
+
+        /* Section Slide */
+        .slide.section-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, #005fa3 100%);
+            color: var(--white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .section-slide .section-num {
+            font-size: 80px;
+            font-weight: 800;
+            color: rgb(255, 255, 255);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .section-slide h1 {
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 16px;
+        }
+        .section-slide p {
+            font-size: 18px;
+            color: rgba(255,255,255,0.65);
+        }
+        .section-slide .time-tag {
+            margin-top: 32px;
+            display: inline-block;
+            background: rgba(0,188,242,0.2);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 7px 22px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Break Slide */
+        .slide.break-slide {
+            background: linear-gradient(135deg, #1a3a5c 0%, var(--primary-blue) 100%);
+            color: var(--white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .break-slide .break-icon { font-size: 72px; margin-bottom: 20px; }
+        .break-slide h1 { font-size: 52px; font-weight: 700; margin-bottom: 12px; }
+        .break-slide p { font-size: 20px; color: rgba(255,255,255,0.75); }
+
+        /* Closing Slide */
+        .slide.closing-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .closing-slide h1 { font-size: 48px; font-weight: 700; margin-bottom: 16px; }
+        .closing-slide p { font-size: 17px; color: rgba(255,255,255,0.78); margin-bottom: 6px; }
+
+        /* Standard Layout */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #F1F5F9;
+            padding-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .slide-title { font-size: 32px; font-weight: 700; color: var(--dark-navy); }
+        .slide-subtitle { font-size: 13px; color: var(--secondary-blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; font-weight: 600; }
+        .time-chip {
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            color: var(--secondary-blue);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        .slide-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 22px;
+            align-content: start;
+            overflow: hidden;
+        }
+        .slide-footer {
+            position: absolute;
+            bottom: 22px;
+            left: 70px;
+            right: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            border-top: 1px solid #E2E8F0;
+            padding-top: 12px;
+        }
+
+        /* Grid Cols */
+        .col-12 { grid-column: span 12; }
+        .col-8  { grid-column: span 8; }
+        .col-7  { grid-column: span 7; }
+        .col-6  { grid-column: span 6; }
+        .col-5  { grid-column: span 5; }
+        .col-4  { grid-column: span 4; }
+        .col-3  { grid-column: span 3; }
+
+        /* Card */
+        .card {
+            background: var(--bg-light);
+            border-radius: 6px;
+            padding: 22px 24px;
+            border-top: 4px solid var(--secondary-blue);
+        }
+        .card.accent { border-top-color: var(--accent-cyan); }
+        .card.green  { border-top-color: #10B981; }
+        .card.orange { border-top-color: #F59E0B; }
+        .card h3 { font-size: 17px; color: var(--dark-navy); margin-bottom: 10px; font-weight: 700; }
+        .card p  { font-size: 14px; line-height: 1.55; color: var(--text-muted); }
+
+        /* List */
+        ul.plist { list-style: none; }
+        ul.plist li {
+            position: relative;
+            padding-left: 22px;
+            margin-bottom: 10px;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+        ul.plist li::before {
+            content: "■";
+            position: absolute;
+            left: 0;
+            color: var(--accent-cyan);
+            font-size: 11px;
+            top: 4px;
+        }
+        ul.plist.sm li { font-size: 13px; margin-bottom: 7px; }
+
+        /* Agenda */
+        .agenda-grid {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+        .agenda-item {
+            background: var(--bg-light);
+            padding: 18px 16px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+            border-top: 4px solid var(--secondary-blue);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .agenda-item:hover { transform: translateY(-4px); border-top-color: var(--accent-cyan); background: #F0F9FF; }
+        .agenda-num {
+            font-size: 20px; font-weight: 700; color: var(--primary-blue);
+            background: #DBEAFE; width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+        }
+        .agenda-text h3 { font-size: 14px; color: var(--dark-navy); font-weight: 700; margin-bottom: 3px; }
+        .agenda-text p  { font-size: 11px; color: var(--text-muted); }
+
+        /* Timeline */
+        .timeline-wrap {
+            grid-column: span 12;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+        }
+        .timeline-wrap::before {
+            content: "";
+            position: absolute;
+            top: 22px; left: 6%; right: 6%;
+            height: 4px;
+            background: #E2E8F0;
+            z-index: 1;
+        }
+        .tl-step {
+            position: relative; z-index: 2;
+            text-align: center; width: 15%;
+        }
+        .tl-dot {
+            width: 46px; height: 46px;
+            background: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px;
+            margin: 0 auto 12px auto;
+            border: 3px solid var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .tl-step.highlight .tl-dot { background: var(--accent-cyan); }
+        .tl-title { font-weight: 700; font-size: 13px; color: var(--dark-navy); margin-bottom: 5px; }
+        .tl-desc  { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Stats */
+        .stat-grid {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .stat-item {
+            background: var(--bg-light);
+            border-radius: 6px; padding: 22px 16px;
+            text-align: center;
+            border-bottom: 4px solid var(--secondary-blue);
+        }
+        .stat-number { font-size: 36px; font-weight: 700; color: var(--primary-blue); line-height: 1.1; margin-bottom: 6px; }
+        .stat-label  { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Table */
+        .cmp-table { grid-column: span 12; width: 100%; border-collapse: collapse; font-size: 14px; }
+        .cmp-table th { background: var(--dark-navy); color: var(--white); padding: 12px 16px; text-align: left; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cmp-table th:first-child { border-top-left-radius: 6px; }
+        .cmp-table th:last-child  { border-top-right-radius: 6px; }
+        .cmp-table td { padding: 11px 16px; border-bottom: 1px solid #E2E8F0; color: var(--text-main); vertical-align: top; }
+        .cmp-table tr:nth-child(even) td { background: var(--bg-light); }
+        .cmp-table .tag-yes  { display: inline-block; background: #D1FAE5; color: #065F46; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+        .cmp-table .tag-no   { display: inline-block; background: #FEE2E2; color: #991B1B; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+        .cmp-table .tag-maybe{ display: inline-block; background: #FEF3C7; color: #92400E; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+
+        /* Quote */
+        .quote-block {
+            grid-column: span 12;
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white); border-radius: 8px;
+            padding: 36px 52px; text-align: center;
+        }
+        .quote-block p { font-size: 22px; font-weight: 600; line-height: 1.5; font-style: italic; }
+        .quote-block span { display: block; margin-top: 16px; font-size: 13px; font-weight: 400; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Prompt Box */
+        .prompt-box {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 18px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #E2E8F0;
+            border-left: 4px solid var(--accent-cyan);
+        }
+        .prompt-box .p-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-cyan); margin-bottom: 4px; font-family: 'Segoe UI', sans-serif; font-weight: 700; }
+        .prompt-box .p-role   { color: #93C5FD; }
+        .prompt-box .p-ctx    { color: #86EFAC; }
+        .prompt-box .p-task   { color: #FCD34D; }
+        .prompt-box .p-con    { color: #F9A8D4; }
+        .prompt-box .p-out    { color: #C4B5FD; }
+
+        /* Component pill */
+        .prompt-pill {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 14px 16px;
+            border-left: 4px solid var(--secondary-blue);
+        }
+        .pill-icon {
+            width: 34px; height: 34px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 13px; color: white;
+            flex-shrink: 0;
+        }
+        .pill-title { font-weight: 700; font-size: 14px; color: var(--dark-navy); margin-bottom: 2px; }
+        .pill-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+        /* AI Tool Badge */
+        .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            margin: 4px;
+        }
+        .tool-logo {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; color: white;
+            flex-shrink: 0;
+        }
+
+        /* Landscape Category */
+        .landscape-cat {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 20px;
+            border-top: 5px solid var(--secondary-blue);
+        }
+        .landscape-cat h3 {
+            font-size: 15px; font-weight: 700;
+            color: var(--dark-navy); margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .landscape-cat .tools-row {
+            display: flex; flex-wrap: wrap; gap: 6px;
+        }
+
+        /* Two-column comparison */
+        .vs-box {
+            border-radius: 8px;
+            padding: 18px 20px;
+            height: 100%;
+        }
+        .vs-box.bad  { background: #FEF2F2; border: 2px solid #FECACA; }
+        .vs-box.good { background: #F0FDF4; border: 2px solid #BBF7D0; }
+        .vs-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+        .vs-box.bad  .vs-label { color: #DC2626; }
+        .vs-box.good .vs-label { color: #059669; }
+        .vs-prompt { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; background: rgba(0,0,0,0.06); padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; }
+        .vs-result { font-size: 13px; line-height: 1.55; color: var(--text-main); }
+
+        /* Activity flow */
+        .flow-arrow {
+            display: flex; align-items: center; gap: 0;
+            grid-column: span 12;
+        }
+        .flow-step {
+            flex: 1;
+            text-align: center;
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 14px 10px;
+            border-top: 3px solid var(--secondary-blue);
+            position: relative;
+        }
+        .flow-step::after {
+            content: "▶";
+            position: absolute;
+            right: -14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-cyan);
+            font-size: 18px;
+            z-index: 5;
+        }
+        .flow-step:last-child::after { display: none; }
+        .flow-step .fs-num { font-size: 22px; font-weight: 800; color: var(--primary-blue); }
+        .flow-step .fs-label { font-size: 12px; font-weight: 700; color: var(--dark-navy); margin-top: 4px; }
+
+        /* Navigation – bottom right */
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 28px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+        .nav-btn {
+            background: var(--secondary-blue);
+            color: var(--white);
+            border: none;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .nav-btn:hover { background: var(--primary-blue); }
+        .slide-counter {
+            position: fixed;
+            bottom: 26px;
+            left: 28px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            z-index: 1000;
+            font-weight: 500;
+        }
+
+        /* Click zones */
+        .click-zone {
+            position: fixed;
+            top: 0; bottom: 0;
+            width: 60px; z-index: 10;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.15);
+            font-size: 28px;
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+        .click-zone:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); }
+        .click-zone-left  { left: 0; }
+        .click-zone-right { right: 0; }
+
+        /* Highlight box */
+        .highlight-box {
+            background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+            border: 1px solid #BFDBFE;
+            border-radius: 8px;
+            padding: 14px 18px;
+        }
+        .highlight-box h4 { color: var(--primary-blue); font-size: 14px; margin-bottom: 6px; }
+        .highlight-box p  { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        /* Ice Break Question */
+        .iceq {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 16px 20px;
+            border-left: 4px solid var(--accent-cyan);
+            margin-bottom: 0;
+        }
+        .iceq .q-num { font-size: 11px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .iceq .q-text { font-size: 15px; color: var(--dark-navy); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="click-zone click-zone-left"  onclick="prevSlide(event)">&#10094;</div>
+<div class="click-zone click-zone-right" onclick="nextSlide(event)">&#10095;</div>
+<div class="slide-counter" id="slideCounter">1 / 17</div>
+
+<div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide(event)">&#8592; Back</button>
+    <button class="nav-btn" onclick="toggleFullscreen(event)" id="fsBtn">Full Screen</button>
+    <button class="nav-btn" onclick="nextSlide(event)">Next &#8594;</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 1 – COVER
+═══════════════════════════════════════════════════════ -->
+<section class="slide title-slide active" id="slide-1">
+    <div class="badge">AI Training Workshop &nbsp;·&nbsp; Morning Session</div>
+    <h1>From Awareness<br>to Action with AI</h1>
+    <h2>Empowering Every Role with Artificial Intelligence</h2>
+    <div class="meta-box">
+        <span><strong>Date:</strong> July 28, 2026</span>
+        <span><strong>Time:</strong> 9:00 AM – 12:00</span>
+        <span><strong>Audience:</strong> All Staff &amp; Teams</span>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 2 – TABLE OF CONTENTS
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-2">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Morning Agenda</div>
+            <div class="slide-title">What We Cover Today</div>
+        </div>
+        <span class="time-chip">Table of contents</span>
+    </div>
+    <div class="slide-body">
+        <div class="agenda-grid">
+            <div class="agenda-item" onclick="goToSlide(3)">
+                <div class="agenda-num">01</div>
+                <div class="agenda-text">
+                    <h3>Welcome &amp; Ice Break</h3>
+                    <!-- <p>9:00 – 9:15 · 15 mins</p> -->
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(4)">
+                <div class="agenda-num">02</div>
+                <div class="agenda-text">
+                    <h3>AI Introduction</h3>
+                    <!-- <p>9:15 – 9:55 · 40 mins</p> -->
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(8)">
+                <div class="agenda-num">03</div>
+                <div class="agenda-text">
+                    <h3>Prompt Template</h3>
+                    <!-- <p>9:55 – 10:15 · 20 mins</p> -->
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(12)">
+                <div class="agenda-num">04</div>
+                <div class="agenda-text">
+                    <h3>Live Demo</h3>
+                    <!-- <p>10:15 – 10:30 · 15 mins</p> -->
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(13)">
+                <div class="agenda-num">05</div>
+                <div class="agenda-text">
+                    <h3>Tea Break</h3>
+                    <!-- <p>10:30 – 10:45 · 15 mins</p> -->
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(14)">
+                <div class="agenda-num">06</div>
+                <div class="agenda-text">
+                    <h3>Activity 1: AI Challenge</h3>
+                    <!-- <p>10:45 – 11:15 · 30 mins</p> -->
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(16)">
+                <div class="agenda-num">07</div>
+                <div class="agenda-text">
+                    <h3>Group Presentation</h3>
+                    <!-- <p>11:15 – 11:45 · 30 mins</p> -->
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(17)">
+                <div class="agenda-num">08</div>
+                <div class="agenda-text">
+                    <h3>Conclusion &amp; Summary</h3>
+                    <!-- <p>11:45 – 12:00 · 15 mins</p> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 2 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 3 – WELCOME & ICE BREAK
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-3">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 01</div>
+            <div class="slide-title">Welcome &amp; Ice Break</div>
+        </div>
+        <span class="time-chip">Welcome</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:16px;">
+        <div class="col-6">
+            <div class="card" style="height:100%;">
+                <h3>Welcome &amp; Expectations</h3>
+                <ul class="plist" style="margin-top:8px;">
+                    <li>This is a <strong>hands-on, practical</strong> workshop — not a lecture</li>
+                    <li>Ask questions freely at any time</li>
+                    <li>No prior technical background required</li>
+                    <li>Goal: leave with at least <strong>one AI skill</strong> you can use tomorrow</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-6">
+            <div style="display:flex; flex-direction:column; gap:12px; height:100%;">
+                <div style="font-size:14px; font-weight:700; color:var(--dark-navy); text-transform:uppercase; letter-spacing:1px;">🔥 Warm-Up Questions</div>
+                <div class="iceq">
+                    <div class="q-num">Question 1</div>
+                    <div class="q-text">Have you used any AI tool in the past month? (ChatGPT, Copilot, etc.)</div>
+                </div>
+                <div class="iceq">
+                    <div class="q-num">Question 2</div>
+                    <div class="q-text">What task at work takes the most of your time each week?</div>
+                </div>
+                <div class="iceq">
+                    <div class="q-num">Question 3</div>
+                    <div class="q-text">If AI could help you with ONE thing today, what would it be?</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="highlight-box">
+                <h4>Today's Promise</h4>
+                <p>You will understand what AI is, how to use AI effectively, and have practiced using AI tools to solve real workplace tasks.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 3 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 4 – AI INTRODUCTION (SECTION)
+═══════════════════════════════════════════════════════ -->
+<section class="slide section-slide" id="slide-4">
+    <div class="section-num">02</div>
+    <h1>AI Introduction</h1>
+    <p>Understanding the technology that is reshaping every industry</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 5 – WHAT IS AI?
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-5">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 02: AI Introduction</div>
+            <div class="slide-title">What is Artificial Intelligence?</div>
+        </div>
+    </div>
+    <div class="slide-body" style="align-content:center;">
+        <div class="col-5">
+            <div style="background:linear-gradient(135deg,var(--dark-navy),#005fa3); border-radius:10px; padding:28px 26px; color:white; height:100%;">
+                <div style="font-size:13px; color:var(--accent-cyan); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Simple Definition</div>
+                <p style="font-size:20px; font-weight:700; line-height:1.5; margin-bottom:16px;">AI is <em style="color:var(--accent-cyan);">software</em> that can<br>think, learn, and act —<br>just like a smart assistant.</p>
+                <p style="font-size:14px; color:rgba(255,255,255,0.7); line-height:1.6;">It doesn't follow rigid rules — it <strong style="color:white;">learns from examples</strong> and improves over time, just like a new employee getting better at their job.</p>
+            </div>
+        </div>
+        <div class="col-7" style="display:grid; grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
+            <div class="card" style="border-top-color:#3B82F6;">
+                <h3>🧠 Understand Requirements</h3>
+                <p>Reads and interprets natural language — emails, documents, instructions — and extracts meaning accurately.</p>
+            </div>
+            <div class="card accent">
+                <h3>📊 Learn Patterns</h3>
+                <p>Identifies recurring patterns in data and improves predictions the more information it receives.</p>
+            </div>
+            <div class="card" style="border-top-color:#10B981;">
+                <h3>⚡ Automate Repetitive Work</h3>
+                <p>Handles tasks like drafting emails, summarizing reports, or filling templates — at machine speed.</p>
+            </div>
+            <div class="card" style="border-top-color:#F59E0B;">
+                <h3>🎯 Help with Decisions</h3>
+                <p>Analyzes options, surfaces insights, and recommends actions based on your specific context and goals.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 5 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 6 – AI TIMELINE
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-6">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 02: AI Introduction</div>
+            <div class="slide-title">The Evolution of AI Technology</div>
+        </div>
+        <span class="time-chip">AI Timeline</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:20px;">
+
+        <!-- ROW 1: Past (items 1–3) -->
+        <div class="col-12" style="position:relative; display:flex; justify-content:space-between; align-items:flex-start;">
+            <!-- connector line row 1 -->
+            <div style="position:absolute; top:30px; left:12%; right:12%; height:4px; background:#E2E8F0; z-index:0;"></div>
+            <!-- Step 1 -->
+            <div style="position:relative; z-index:1; text-align:center; width:30%;">
+                <div style="width:60px;height:60px;background:var(--secondary-blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin:0 auto 14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.15);">01</div>
+                <div style="font-weight:700;font-size:17px;color:var(--dark-navy);margin-bottom:7px;">Traditional Software</div>
+                <div style="font-size:14px;color:var(--text-muted);line-height:1.45;">Rule-based systems. Humans write every instruction. Predictable but rigid.</div>
+            </div>
+            <!-- Step 2 -->
+            <div style="position:relative; z-index:1; text-align:center; width:30%;">
+                <div style="width:60px;height:60px;background:var(--secondary-blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin:0 auto 14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.15);">02</div>
+                <div style="font-weight:700;font-size:17px;color:var(--dark-navy);margin-bottom:7px;">Machine Learning</div>
+                <div style="font-size:14px;color:var(--text-muted);line-height:1.45;">Systems learn from data. Finds patterns humans can't easily see.</div>
+            </div>
+            <!-- Step 3 -->
+            <div style="position:relative; z-index:1; text-align:center; width:30%;">
+                <div style="width:60px;height:60px;background:var(--secondary-blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin:0 auto 14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.15);">03</div>
+                <div style="font-weight:700;font-size:17px;color:var(--dark-navy);margin-bottom:7px;">Deep Learning</div>
+                <div style="font-size:14px;color:var(--text-muted);line-height:1.45;">Neural networks mimic the brain. Enables image, speech and text understanding.</div>
+            </div>
+        </div>
+
+        <!-- Era label row 1 -->
+        <div class="col-12" style="display:flex; justify-content:center; margin:-8px 0;">
+            <div style="background:#F1F5F9; border-radius:6px; padding:7px 28px; text-align:center; display:inline-flex; align-items:center; gap:8px;">
+                <span style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Past</span>
+                <span style="color:#CBD5E1;">·</span>
+                <span style="font-size:12px;color:var(--text-muted);">Rule-based &amp; Statistical Learning</span>
+            </div>
+        </div>
+
+        <!-- ROW 2: Present & Future (items 4–6) -->
+        <div class="col-12" style="position:relative; display:flex; justify-content:space-between; align-items:flex-start;">
+            <!-- connector line row 2 -->
+            <div style="position:absolute; top:30px; left:12%; right:12%; height:4px; background:rgba(0,188,242,0.35); z-index:0;"></div>
+            <!-- Step 4 -->
+            <div style="position:relative; z-index:1; text-align:center; width:30%;">
+                <div style="width:60px;height:60px;background:var(--accent-cyan);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin:0 auto 14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,188,242,0.3);">04</div>
+                <div style="font-weight:700;font-size:17px;color:var(--dark-navy);margin-bottom:7px;">Generative AI</div>
+                <div style="font-size:14px;color:var(--text-muted);line-height:1.45;">Creates new content: text, images, code. ChatGPT, Claude, Gemini.</div>
+            </div>
+            <!-- Step 5 -->
+            <div style="position:relative; z-index:1; text-align:center; width:30%;">
+                <div style="width:60px;height:60px;background:var(--accent-cyan);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin:0 auto 14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,188,242,0.3);">05</div>
+                <div style="font-weight:700;font-size:17px;color:var(--dark-navy);margin-bottom:7px;">AI Agent</div>
+                <div style="font-size:14px;color:var(--text-muted);line-height:1.45;">AI that takes actions: browses web, writes files, executes tasks autonomously.</div>
+            </div>
+            <!-- Step 6 -->
+            <div style="position:relative; z-index:1; text-align:center; width:30%;">
+                <div style="width:60px;height:60px;background:var(--accent-cyan);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin:0 auto 14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,188,242,0.3);">06</div>
+                <div style="font-weight:700;font-size:17px;color:var(--dark-navy);margin-bottom:7px;">Agentic AI</div>
+                <div style="font-size:14px;color:var(--text-muted);line-height:1.45;">Multiple agents collaborating to solve complex, multi-step business problems.</div>
+            </div>
+        </div>
+
+        <!-- Era label row 2 -->
+        <div class="col-12" style="display:flex; justify-content:center; gap:16px; margin:-8px 0;">
+            <div style="background:#DBEAFE; border-radius:6px; padding:7px 24px; display:inline-flex; align-items:center; gap:8px;">
+                <span style="font-size:11px;color:var(--secondary-blue);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Present</span>
+                <span style="color:#BFDBFE;">·</span>
+                <span style="font-size:12px;color:var(--secondary-blue); font-weight:600;">Generative AI – Where we are now</span>
+            </div>
+            <div style="background:#D1FAE5; border-radius:6px; padding:7px 24px; display:inline-flex; align-items:center; gap:8px;">
+                <span style="font-size:11px;color:#059669;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Near Future</span>
+                <span style="color:#A7F3D0;">·</span>
+                <span style="font-size:12px;color:#065F46;">AI Agents &amp; Agentic AI</span>
+            </div>
+        </div>
+
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 6 of 18</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 7 – CURRENT AI LANDSCAPE
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-7">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 02: AI Introduction</div>
+            <div class="slide-title">Current AI Landscape</div>
+        </div>
+        <span class="time-chip">Tools Available Today</span>
+    </div>
+    <div class="slide-body" style="align-content:center;">
+        <!-- Knowledge & Productivity -->
+        <div class="col-4">
+            <div class="landscape-cat" style="height:100%;">
+                <h3 style="color:#0078D4;">
+                    <span style="background:#0078D4;color:white;padding:3px 9px;border-radius:4px;font-size:12px;">🧠</span>
+                    Knowledge &amp; Productivity
+                </h3>
+                <div class="tools-row">
+                    <div class="tool-badge" style="background:#10a37f;">
+                        <div class="tool-logo">C</div>ChatGPT
+                    </div>
+                    <div class="tool-badge" style="background:#D4693B;">
+                        <div class="tool-logo">A</div>Claude
+                    </div>
+                    <div class="tool-badge" style="background:#4285F4;">
+                        <div class="tool-logo">G</div>Gemini
+                    </div>
+                    <div class="tool-badge" style="background:#20B2AA;">
+                        <div class="tool-logo">P</div>Perplexity
+                    </div>
+                    <div class="tool-badge" style="background:#1a73e8;">
+                        <div class="tool-logo">N</div>NotebookLM
+                    </div>
+                    <div class="tool-badge" style="background:#0078D4;">
+                        <div class="tool-logo">M</div>Copilot
+                    </div>
+                </div>
+                <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">Answer questions, summarize documents, draft emails, research topics, generate reports.</p>
+            </div>
+        </div>
+        <!-- Software Development -->
+        <div class="col-4">
+            <div class="landscape-cat" style="border-top-color:#7C3AED; height:100%;">
+                <h3 style="color:#7C3AED;">
+                    <span style="background:#7C3AED;color:white;padding:3px 9px;border-radius:4px;font-size:12px;">💻</span>
+                    Software Development
+                </h3>
+                <div class="tools-row">
+                    <div class="tool-badge" style="background:#1C1C1C;">
+                        <div class="tool-logo">Cr</div>Cursor
+                    </div>
+                    <div class="tool-badge" style="background:#24292e;">
+                        <div class="tool-logo">Co</div>Codex
+                    </div>
+                    <div class="tool-badge" style="background:#0078D4;">
+                        <div class="tool-logo">GC</div>GitHub Copilot
+                    </div>
+                </div>
+                <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">Write, review, and debug code. Automate scripts, build tools, and generate technical documentation.</p>
+                <div style="margin-top:14px; background:#F5F3FF; border-radius:6px; padding:10px 12px;">
+                    <p style="font-size:12px; color:#7C3AED; font-weight:600;">Ideal for: IT teams, analysts, anyone building automation tools.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Media & Content -->
+        <div class="col-4">
+            <div class="landscape-cat" style="border-top-color:#EC4899; height:100%;">
+                <h3 style="color:#EC4899;">
+                    <span style="background:#EC4899;color:white;padding:3px 9px;border-radius:4px;font-size:12px;">🎨</span>
+                    Media &amp; Content Creation
+                </h3>
+                <div class="tools-row">
+                    <div class="tool-badge" style="background:#6C63FF;">
+                        <div class="tool-logo">Ga</div>Gamma
+                    </div>
+                    <div class="tool-badge" style="background:#1a1a2e;">
+                        <div class="tool-logo">Mj</div>Midjourney
+                    </div>
+                    <div class="tool-badge" style="background:#10a37f;">
+                        <div class="tool-logo">DE</div>DALL·E
+                    </div>
+                    <div class="tool-badge" style="background:#2563EB;">
+                        <div class="tool-logo">EL</div>ElevenLabs
+                    </div>
+                </div>
+                <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">Generate presentations, images, videos, and voiceovers. Accelerate marketing and creative workflows.</p>
+                <div style="margin-top:14px; background:#FDF2F8; border-radius:6px; padding:10px 12px;">
+                    <p style="font-size:12px; color:#EC4899; font-weight:600;">Ideal for: Marketing, HR, training, and communications teams.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 7 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 8 – PROMPT TEMPLATE INTRO
+═══════════════════════════════════════════════════════ -->
+<section class="slide section-slide" id="slide-8">
+    <div class="section-num">03</div>
+    <h1>Prompt Engineering</h1>
+    <p>The skill that separates average AI results from exceptional ones</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 9 – PROMPT TEMPLATE COMPONENTS
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-9">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 03: Prompt Engineering</div>
+            <div class="slide-title">The Standard Prompt Template</div>
+        </div>
+        <span class="time-chip">5 Components</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:14px;">
+        <div class="col-6" style="display:flex; flex-direction:column; gap:10px; align-self:start;">
+            <div class="prompt-pill" style="border-left-color:#3B82F6;">
+                <div class="pill-icon" style="background:#3B82F6;">R</div>
+                <div><div class="pill-title">Role</div><div class="pill-desc">Tell AI who it should be. <em>"Act as a professional email writer..."</em></div></div>
+            </div>
+            <div class="prompt-pill" style="border-left-color:#10B981;">
+                <div class="pill-icon" style="background:#10B981;">C</div>
+                <div><div class="pill-title">Context</div><div class="pill-desc">Provide background. <em>"I work in a logistics company. The audience is senior management..."</em></div></div>
+            </div>
+            <div class="prompt-pill" style="border-left-color:#F59E0B;">
+                <div class="pill-icon" style="background:#F59E0B;">T</div>
+                <div><div class="pill-title">Task</div><div class="pill-desc">State what you need clearly. <em>"Write a summary of this week's sales performance..."</em></div></div>
+            </div>
+            <div class="prompt-pill" style="border-left-color:#EC4899;">
+                <div class="pill-icon" style="background:#EC4899;">C</div>
+                <div><div class="pill-title">Constraints</div><div class="pill-desc">Set boundaries. <em>"Keep it under 150 words. Formal tone. No technical jargon."</em></div></div>
+            </div>
+            <div class="prompt-pill" style="border-left-color:#8B5CF6;">
+                <div class="pill-icon" style="background:#8B5CF6;">O</div>
+                <div><div class="pill-title">Output Format</div><div class="pill-desc">Specify the shape. <em>"Return as bullet points / table / email / numbered list."</em></div></div>
+            </div>
+        </div>
+        <div class="col-6" style="align-self:start;">
+            <div class="prompt-box">
+                <div class="p-label">Full Prompt Example</div>
+                <span class="p-role">You are a professional business writer with experience in logistics reports.</span><br><br>
+                <span class="p-ctx">Context: I am preparing a weekly update for senior management at a distribution company. The report covers Q2 performance.</span><br><br>
+                <span class="p-task">Task: Summarize the key highlights from the following sales data and flag any areas of concern.</span><br><br>
+                <span class="p-con">Constraints: Keep it under 200 words. Use formal English. Avoid technical jargon. Be direct and factual.</span><br><br>
+                <span class="p-out">Output format: Use 3 sections — Wins, Concerns, Next Steps. Each section should have 2–3 bullet points.</span>
+            </div>
+            <div style="margin-top:12px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:6px; padding:12px 16px;">
+                <p style="font-size:13px; color:#92400E;">💡 <strong>Remember:</strong> The more specific your prompt, the more useful the AI output. Garbage in = Garbage out.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 9 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 10 – EVIDENCE: SIMPLE vs TEMPLATE
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-10">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 03: Prompt Engineering</div>
+            <div class="slide-title">Simple Prompt vs. Structured Prompt</div>
+        </div>
+        <span class="time-chip">Side-by-Side Comparison</span>
+    </div>
+    <div class="slide-body" style="align-content:center;">
+        <div class="col-6">
+            <div class="vs-box bad" style="height:100%;">
+                <div class="vs-label">❌ Without Template</div>
+                <div class="vs-prompt">Write me an email about the project delay.</div>
+                <hr style="border:none;border-top:1px solid #FECACA;margin:10px 0;">
+                <div style="font-size:12px;color:#991B1B;margin-bottom:6px;font-weight:600;">AI Output:</div>
+                <div class="vs-result" style="font-size:13px;">
+                    "Dear Team,<br><br>
+                    I wanted to inform you about the project delay. There have been some issues that have caused us to fall behind schedule. We are working hard to resolve these issues and will update you soon.<br><br>
+                    Best regards"
+                </div>
+                <div style="margin-top:12px;background:#FEE2E2;border-radius:4px;padding:8px 12px;">
+                    <p style="font-size:12px;color:#DC2626;">⚠ Vague. Generic. No specific action. Could apply to any situation.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="vs-box good" style="height:100%;">
+                <div class="vs-label">✅ With Prompt Template</div>
+                <div class="vs-prompt" style="font-size:11px;">Role: Professional project manager. Context: Software project delayed 2 weeks due to vendor issues. Audience: Client (VP-level). Task: Write a delay notification email. Constraints: Formal, under 120 words, solution-focused. Output: Business email format.</div>
+                <hr style="border:none;border-top:1px solid #BBF7D0;margin:10px 0;">
+                <div style="font-size:12px;color:#059669;margin-bottom:6px;font-weight:600;">AI Output:</div>
+                <div class="vs-result" style="font-size:13px;">
+                    "Dear [Client Name],<br><br>
+                    I'm writing to notify you that Phase 2 of the project will be delayed by approximately two weeks due to an unforeseen vendor delivery issue. We have already engaged an alternative supplier and adjusted the internal timeline to minimize impact.<br>
+                    The revised go-live date is <strong>[Date]</strong>. A detailed recovery plan will be shared by Friday.<br><br>
+                    We appreciate your understanding and remain committed to delivering a quality outcome.<br>
+                    Best regards, [Name]"
+                </div>
+                <div style="margin-top:8px;background:#D1FAE5;border-radius:4px;padding:8px 12px;">
+                    <p style="font-size:12px;color:#059669;">✓ Specific. Professional. Actionable. Contextually accurate.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 10 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 11 – WHY EACH PART MATTERS
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-11">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 03: Prompt Engineering</div>
+            <div class="slide-title">Why Each Component Matters</div>
+        </div>
+        <span class="time-chip">What happens if it's missing?</span>
+    </div>
+    <div class="slide-body" style="align-content:start; gap:12px;">
+        <table class="cmp-table" style="grid-column:span 12;">
+            <thead>
+                <tr>
+                    <th style="width:14%;">Component</th>
+                    <th style="width:28%;">What It Does</th>
+                    <th style="width:28%;">❌ Without It</th>
+                    <th style="width:30%;">✅ With It</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong style="color:#3B82F6;">Role</strong></td>
+                    <td>Sets the AI's expertise and tone</td>
+                    <td>Generic, neutral response with no personality or depth</td>
+                    <td><em>"As an HR specialist, I recommend..."</em> – targeted expert advice</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:#10B981;">Context</strong></td>
+                    <td>Gives AI the background it needs</td>
+                    <td>AI makes assumptions; output may be irrelevant to your situation</td>
+                    <td>AI tailors the response to your specific industry and audience</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:#F59E0B;">Task</strong></td>
+                    <td>Tells AI exactly what to produce</td>
+                    <td>AI may summarize, explain, or discuss — but not do what you needed</td>
+                    <td>AI produces exactly the deliverable you need</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:#EC4899;">Constraints</strong></td>
+                    <td>Controls scope, length, and style</td>
+                    <td>Output may be too long, too casual, or include unwanted content</td>
+                    <td>Output is concise, professional, and ready to use immediately</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:#8B5CF6;">Output Format</strong></td>
+                    <td>Defines the structure of the result</td>
+                    <td>AI writes in paragraphs when you needed a table or bullet list</td>
+                    <td>Output arrives in exactly the format you can copy and use</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="col-12" style="margin-top:0;">
+            <div class="highlight-box">
+                <h4>Key Insight</h4>
+                <p>Each component removes one layer of ambiguity. When AI is unclear about any element, it fills the gap with assumptions — and those assumptions are rarely what you needed.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 11 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 12 – LIVE DEMO
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-12">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 04</div>
+            <div class="slide-title">Live Demonstration</div>
+        </div>
+        <span class="time-chip">15 Minutes</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:20px;">
+        <div class="col-6">
+            <div class="card" style="border-top-color:#10a37f; height:100%;">
+                <h3 style="display:flex;align-items:center;gap:10px;">
+                    <span style="background:#10a37f;color:white;width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;">C</span>
+                    ChatGPT Demo
+                    <!-- <span style="margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:400;">10 mins</span> -->
+                </h3>
+                <ul class="plist sm" style="margin-top:8px;">
+                    <li>Apply the 5-component prompt template live</li>
+                    <li>Write a professional report summary</li>
+                    <li>Draft a customer email in seconds</li>
+                    <li>Show difference: bad prompt vs. good prompt</li>
+                    <li>Use follow-up prompts to refine the output</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card" style="border-top-color:#1a73e8; height:100%;">
+                <h3 style="display:flex;align-items:center;gap:10px;">
+                    <span style="background:#1a73e8;color:white;width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;">N</span>
+                    NotebookLM Demo
+                    <!-- <span style="margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:400;">5 mins</span> -->
+                </h3>
+                <ul class="plist sm" style="margin-top:8px;">
+                    <li>Upload a document and ask questions about it</li>
+                    <li>Generate audio overview of a report</li>
+                    <li>Extract key insights from a long PDF instantly</li>
+                </ul>
+                <div style="margin-top:16px; background:#EFF6FF; border-radius:6px; padding:10px 14px;">
+                    <p style="font-size:12px; color:#1E40AF;">💡 <strong>Optional:</strong> Show Gamma.app or another tool if time permits.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div style="background:#0F172A; border-radius:8px; padding:18px 24px; display:flex; align-items:center; gap:20px;">
+                <div style="font-size:36px; color:white;">👁</div>
+                <div>
+                    <p style="color:var(--accent-cyan); font-weight:700; font-size:15px; margin-bottom:4px;">Watch &amp; Take Notes</p>
+                    <p style="color:rgba(255,255,255,0.65); font-size:13px;">You will use these same AI tools during Activity 1. Notice how the trainer structures prompts and refines outputs in real time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 12 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 13 – TEA BREAK
+═══════════════════════════════════════════════════════ -->
+<section class="slide break-slide" id="slide-13">
+    <div class="break-icon">☕</div>
+    <h1>Tea Break</h1>
+    <p>15 Minutes</p>
+    <p style="margin-top:16px; font-size:16px;">Recharge and return ready for hands-on practice!</p>
+    <div style="margin-top:32px; display:flex; gap:24px; justify-content:center;">
+        <div style="background:rgba(255,255,255,0.1); border-radius:8px; padding:14px 24px; text-align:center;">
+            <div style="font-size:22px; font-weight:700; color:var(--accent-cyan);">10:45</div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.7); margin-top:4px;">Session Resumes</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1); border-radius:8px; padding:14px 24px; text-align:center;">
+            <div style="font-size:22px; font-weight:700; color:var(--accent-cyan);">Activity 1</div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.7); margin-top:4px;">Hands-On AI Practice</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 14 – ACTIVITY 1 INSTRUCTIONS
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-14">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Activity 1</div>
+            <div class="slide-title">AI Challenge: Problem-solving with Prompting</div>
+        </div>
+        <span class="time-chip">30 Minutes · Group Work</span>
+    </div>
+    <div class="slide-body" style="align-content:start; gap:14px;">
+        <div class="col-12" style="display:flex; gap:0; margin-bottom:0;">
+            <div class="flow-step" style="margin-right:18px;">
+                <div class="fs-num">①</div>
+                <div class="fs-label">Task</div>
+            </div>
+            <div class="flow-step" style="margin-right:18px;">
+                <div class="fs-num">②</div>
+                <div class="fs-label">Can AI Solve It?</div>
+            </div>
+            <div class="flow-step" style="margin-right:18px;">
+                <div class="fs-num">③</div>
+                <div class="fs-label">Write Prompt</div>
+            </div>
+            <div class="flow-step" style="margin-right:18px;">
+                <div class="fs-num">④</div>
+                <div class="fs-label">Compare Results</div>
+            </div>
+        </div>
+        <table class="cmp-table" style="grid-column:span 12;">
+            <thead>
+                <tr>
+                    <th style="width:4%;">#</th>
+                    <th style="width:30%;">Workplace Task</th>
+                    <th style="width:24%;">AI Applicable?</th>
+                    <th style="width:42%;">Your Prompt (use the template!)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>Summarize a long meeting transcript into key action items</td><td><span class="tag-yes">Yes</span></td><td><em style="color:var(--text-muted);font-size:12px;">Write here...</em></td><td></td></tr>
+                <tr><td>2</td><td>Draft a professional reply to a customer complaint email</td><td><span class="tag-yes">Yes</span></td><td></td><td></td></tr>
+                <tr><td>3</td><td>Automated employee evaluation and termination decision</td><td><span class="tag-no">No</span></td><td></td><td></td></tr>
+                <tr><td>4</td><td>Build a project timeline from a list of deliverables</td><td><span class="tag-yes">Yes</span></td><td></td><td></td></tr>
+                <tr><td>5</td><td>Automated recruitment, testing, and interviewing.</td><td><span class="tag-maybe">Partial</span></td><td></td><td></td></tr>
+                <tr><td>6</td><td>Create a training presentation for new staff onboarding</td><td><span class="tag-yes">Yes</span></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+        <!-- <div class="col-12" style="margin-top:0;">
+            <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 16px;display:flex;align-items:center;gap:10px;">
+                <span style="font-size:18px;">💻</span>
+                <p style="font-size:13px;color:#92400E;"><strong>Each group needs 1 laptop.</strong> Use two different AI tools for your chosen task and compare the outputs. Be ready to present your findings!</p>
+            </div>
+        </div> -->
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 14 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 15 – ACTIVITY 1 SAMPLE
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-15">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Activity 1 · Worked Example</div>
+            <div class="slide-title">Sample: How to Complete the Activity</div>
+        </div>
+        <span class="time-chip">Reference Guide</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:16px;">
+        <div class="col-12">
+            <div style="background:#F0F9FF; border:1px solid #BAE6FD; border-radius:8px; padding:12px 20px; display:flex; align-items:center; gap:14px; margin-bottom:0;">
+                <div style="font-size:24px;">📋</div>
+                <div><strong style="color:#0369A1;">Task #2 – Reply to a customer complaint email</strong><span style="margin-left:12px; font-size:12px; color:var(--text-muted);">Tas: Drafting professional replies takes 20–30 minutes per email</span></div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="height:100%;">
+                <h3>① Identify the Task</h3>
+                <p>Writing polite, professional responses to unhappy customers is time-consuming and emotionally draining. Teams often struggle with tone and completeness.</p>
+                <ul class="plist sm">
+                        <li>Input: The issue customers are complaining about.</li>
+                        <li>Output: Professional explanatory email to the client</li>
+                    </ul>
+                <div style="margin-top:12px; background:#FEF3C7; border-radius:6px; padding:8px 12px;">
+                    <p style="font-size:12px; color:#92400E;"><strong>Can AI help?</strong> Yes — AI can draft a full professional reply in under 30 seconds.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card accent" style="height:100%;">
+                <h3>② Write the Structured Prompt</h3>
+                <div class="prompt-box" style="font-size:11px; line-height:1.6; padding:12px;">
+                    <span class="p-role">You are a senior customer service representative.</span><br>
+                    <span class="p-ctx">A customer ordered a product 2 weeks ago and has not received it. They are frustrated and demanding a refund.</span><br>
+                    <span class="p-task">Write a professional reply email.</span><br>
+                    <span class="p-con">Tone: empathetic and solution-focused. Under 120 words. No promises beyond what's standard policy.</span><br>
+                    <span class="p-out">Format: Business email with subject line.</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div style="display:flex; flex-direction:column; gap:12px; height:100%;">
+                <div class="card green" style="flex:1;">
+                    <h3>③ Compare Using a Structured Prompt</h3>
+                    <p style="margin-bottom:10px;">Run the same prompt in two different AI tools:</p>
+                    <div style="display:flex; gap:8px;">
+                        <div style="flex:1; background:#D1FAE5; border-radius:6px; padding:8px 10px; text-align:center;">
+                            <div style="font-size:12px; font-weight:700; color:#065F46;">ChatGPT</div>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">Output A</div>
+                        </div>
+                        <div style="flex:1; background:#DBEAFE; border-radius:6px; padding:8px 10px; text-align:center;">
+                            <div style="font-size:12px; font-weight:700; color:#1E40AF;">Basic prompt</div>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">Output B</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="border-top-color:#F59E0B; flex:1;">
+                    <h3>④ Discuss &amp; Decide</h3>
+                    <ul class="plist sm">
+                        <li>Which output is better? Why?</li>
+                        <li>What would you change in the prompt?</li>
+                        <li>Is AI suitable for this task long-term?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 15 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 16 – GROUP PRESENTATION
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-16">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 07</div>
+            <div class="slide-title">Group Presentation &amp; Discussion</div>
+        </div>
+        <span class="time-chip">10 Min / Team</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:18px;">
+        <div class="col-7" style="display:flex; flex-direction:column; gap:14px;">
+            <div style="font-size:14px; font-weight:700; color:var(--dark-navy); text-transform:uppercase; letter-spacing:1px; margin-bottom:-4px;">Each Team Must Present:</div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="background:var(--primary-blue);color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;">1</div>
+                <div class="card" style="flex:1;padding:14px 16px;border-top:none;border-left:4px solid var(--primary-blue);">
+                    <h3 style="font-size:15px;">Identify Task</h3>
+                    <p>Understanding the problem being faced. Identify the input and output of the task.</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="background:var(--secondary-blue);color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;">2</div>
+                <div class="card" style="flex:1;padding:14px 16px;border-top:none;border-left:4px solid var(--secondary-blue);">
+                    <h3 style="font-size:15px;">Classify: AI vs. Human</h3>
+                    <p>Which tasks are suitable for AI assistance? Which should remain human-driven and why?</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="background:var(--accent-cyan);color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;">3</div>
+                <div class="card" style="flex:1;padding:14px 16px;border-top:none;border-left:4px solid var(--accent-cyan);">
+                    <h3 style="font-size:15px;">Show Prompt Improvement</h3>
+                    <p>Demonstrate how a better prompt produced a significantly better AI output. Share before &amp; after results.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-5">
+            <div class="card" style="height:100%; border-top-color:#8B5CF6;">
+                <h3 style="color:#7C3AED;">Group Discussion Guidelines</h3>
+                <p style="margin-bottom:12px; font-size:13px;">After each team presents, other groups should:</p>
+                <ul class="plist sm">
+                    <li>Ask questions about the proposed AI use cases and outputs</li>
+                    <li>Suggest ways to improve the prompt further</li>
+                    <li>Share similar use cases from your own department</li>
+                    <li>Challenge: Is AI truly the right solution for this task?</li>
+                    <li>Identify potential limitations or risks of using AI for that task</li>
+                </ul>
+                <div style="margin-top:16px; background:#F5F3FF; border-radius:6px; padding:10px 14px;">
+                    <p style="font-size:12px; color:#7C3AED;"><strong>Tip:</strong> There are no wrong answers — honest discussion leads to the best learning outcomes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 16 of 17</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 17 – CONCLUSION
+═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-17">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 08</div>
+            <div class="slide-title">Conclusion &amp; Morning Summary</div>
+        </div>
+        <span class="time-chip">Conclusion</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:18px;">
+        <div class="col-12">
+            <div class="quote-block" style="padding:28px 44px;">
+                <p>"AI doesn't replace human judgment — it amplifies it, removing repetitive friction so every team member can focus on higher-value work."</p>
+                <span>AI Training Workshop · Morning Session</span>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="border-top-color:#10B981; height:100%;">
+                <h3>✅ What We Learned</h3>
+                <ul class="plist sm">
+                    <li>What AI is and how it has evolved</li>
+                    <li>The current landscape of AI tools</li>
+                    <li>How to write structured, effective prompts</li>
+                    <li>Hands-on practice with real AI tools</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="border-top-color:#F59E0B; height:100%;">
+                <h3>🎯 Key Takeaways</h3>
+                <ul class="plist sm">
+                    <li>Prompt quality directly determines output quality</li>
+                    <li>AI is most valuable for repetitive, structured tasks</li>
+                    <li>Always review and validate AI-generated outputs</li>
+                    <li>Practice makes prompt engineering a natural skill</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="border-top-color:var(--accent-cyan); height:100%;">
+                <h3>🌅 This Afternoon</h3>
+                <ul class="plist sm">
+                    <li>Deeper dive into department-specific AI use cases</li>
+                    <li>AI governance, data security &amp; responsible use</li>
+                    <li>Building automation workflow</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Morning Session</span><span>Slide 17 of 18</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 18 – THANK YOU
+═══════════════════════════════════════════════════════ -->
+<section class="slide closing-slide" id="slide-18">
+    <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 20% 50%, rgba(0,188,242,0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(0,120,212,0.15) 0%, transparent 55%);pointer-events:none;"></div>
+    <div style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;">
+        <div style="font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-cyan);margin-bottom:20px;">AI Training Workshop · Morning Session</div>
+        <h1 style="font-size:72px; font-weight:800; color:white; line-height:1; margin-bottom:8px;">Thank You!</h1>
+        <p style="font-size:22px; color:rgba(255,255,255,0.7); margin-bottom:48px; font-weight:300;">For your time, energy, and curiosity today.</p>
+        <div style="width:60px; height:3px; background:var(--accent-cyan); border-radius:2px; margin-bottom:48px;"></div>
+        <div style="display:flex; gap:48px; margin-bottom:48px;">
+            <div style="text-align:center;">
+                <div style="font-size:32px; margin-bottom:8px;">💬</div>
+                <div style="font-size:15px; font-weight:700; color:white; margin-bottom:4px;">Questions?</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6);">Ask now or after the break</div>
+            </div>
+            <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
+            <div style="text-align:center;">
+                <div style="font-size:32px; margin-bottom:8px;">🚀</div>
+                <div style="font-size:15px; font-weight:700; color:white; margin-bottom:4px;">What's Next?</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6);">Afternoon Session 13:00</div>
+            </div>
+            <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
+            <div style="text-align:center;">
+                <div style="font-size:32px; margin-bottom:8px;">🎯</div>
+                <div style="font-size:15px; font-weight:700; color:white; margin-bottom:4px;">Your Action</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6);">Try AI on one real task this week</div>
+            </div>
+        </div>
+        <div style="background:rgba(0,188,242,0.15); border:1px solid rgba(0,188,242,0.4); border-radius:8px; padding:14px 36px; font-size:15px; color:rgba(255,255,255,0.8); font-style:italic;">
+            "The best way to learn AI is to use it — starting today."
+        </div>
+    </div>
+</section>
+
+<script>
+    let cur = 1;
+    const total = 18;
+
+    function showSlide(n) {
+        if (n < 1 || n > total) return;
+        document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+        const t = document.getElementById('slide-' + n);
+        if (t) { t.classList.add('active'); cur = n; }
+        document.getElementById('slideCounter').textContent = cur + ' / ' + total;
+    }
+
+    function nextSlide(e) { if(e) e.stopPropagation(); showSlide(cur + 1); }
+    function prevSlide(e) { if(e) e.stopPropagation(); showSlide(cur - 1); }
+    function goToSlide(n) { showSlide(n); }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+        else if (e.key === 'ArrowLeft') prevSlide();
+        else if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    });
+
+    function toggleFullscreen(e) {
+        if (e) e.stopPropagation();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    document.addEventListener('fullscreenchange', function() {
+        const btn = document.getElementById('fsBtn');
+        if (btn) btn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Full Screen';
+        fitSlide();
+    });
+
+    function fitSlide() {
+        const sx = window.innerWidth / 1280;
+        const sy = window.innerHeight / 720;
+        document.documentElement.style.setProperty('--scale', Math.min(sx, sy) * 0.96);
+    }
+
+    window.addEventListener('resize', fitSlide);
+    fitSlide();
+</script>
+</body>
+</html>

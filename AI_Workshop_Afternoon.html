@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Training Workshop – Afternoon Session</title>
+    <style>
+        :root {
+            --primary-blue: #004B87;
+            --secondary-blue: #0078D4;
+            --accent-cyan: #00BCF2;
+            --dark-navy: #0A2540;
+            --text-main: #1C2434;
+            --text-muted: #64748B;
+            --bg-light: #F8FAFC;
+            --white: #FFFFFF;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0F172A;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .slide {
+            background-color: var(--white);
+            width: 1280px; height: 720px;
+            position: absolute;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(var(--scale, 1));
+            transform-origin: center center;
+            display: none; flex-direction: column;
+            padding: 50px 70px;
+            opacity: 0; transition: opacity 0.3s ease-in-out; z-index: 1;
+        }
+        .slide.active { display: flex; opacity: 1; z-index: 2; }
+
+        /* Title Slide */
+        .slide.title-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white); justify-content: center; align-items: center;
+            text-align: center; padding: 60px 100px;
+        }
+        .slide.title-slide::after {
+            content: ""; position: absolute;
+            bottom: -100px; right: -100px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(0,188,242,0.18) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+        }
+        .title-slide .badge {
+            display: inline-block;
+            background: rgba(0,188,242,0.2); border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan); font-size: 13px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 6px 20px; border-radius: 20px; margin-bottom: 28px;
+        }
+        .title-slide h1 { font-size: 54px; font-weight: 700; line-height: 1.15; margin-bottom: 16px; color: var(--white); }
+        .title-slide h2 { font-size: 22px; font-weight: 400; color: rgba(255,255,255,0.75); margin-bottom: 44px; }
+        .title-slide .meta-box {
+            border-top: 1px solid rgba(255,255,255,0.2); padding-top: 24px;
+            font-size: 15px; color: #CBD5E1; display: flex; gap: 48px; justify-content: center;
+        }
+
+        /* Section Slide */
+        .slide.section-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, #005fa3 100%);
+            color: var(--white); justify-content: center; align-items: center; text-align: center;
+        }
+        .section-slide .section-num { font-size: 80px; font-weight: 800; color: rgb(255,255,255); line-height: 1; margin-bottom: 8px; }
+        .section-slide h1 { font-size: 44px; font-weight: 700; color: var(--white); margin-bottom: 16px; }
+        .section-slide p { font-size: 18px; color: rgba(255,255,255,0.65); }
+        .section-slide .time-tag {
+            margin-top: 32px; display: inline-block;
+            background: rgba(0,188,242,0.2); border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan); padding: 7px 22px; border-radius: 20px;
+            font-size: 14px; font-weight: 600; letter-spacing: 1px;
+        }
+
+        /* Break Slide */
+        .slide.break-slide {
+            background: linear-gradient(135deg, #1a3a5c 0%, var(--primary-blue) 100%);
+            color: var(--white); justify-content: center; align-items: center; text-align: center;
+        }
+        .break-slide h1 { font-size: 52px; font-weight: 700; margin-bottom: 12px; }
+        .break-slide p  { font-size: 20px; color: rgba(255,255,255,0.75); }
+
+        /* Closing Slide */
+        .slide.closing-slide {
+            background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%);
+            color: var(--white); justify-content: center; align-items: center; text-align: center;
+        }
+
+        /* Standard Layout */
+        .slide-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 22px; border-bottom: 2px solid #F1F5F9;
+            padding-bottom: 14px; flex-shrink: 0;
+        }
+        .slide-title    { font-size: 30px; font-weight: 700; color: var(--dark-navy); }
+        .slide-subtitle { font-size: 13px; color: var(--secondary-blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; font-weight: 600; }
+        .time-chip {
+            background: #EFF6FF; border: 1px solid #BFDBFE; color: var(--secondary-blue);
+            font-size: 12px; font-weight: 600; padding: 4px 14px; border-radius: 12px; white-space: nowrap;
+        }
+        .slide-body {
+            flex: 1; display: grid; grid-template-columns: repeat(12, 1fr);
+            gap: 18px; align-content: start; overflow: hidden;
+        }
+        .slide-footer {
+            position: absolute; bottom: 22px; left: 70px; right: 70px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; color: var(--text-muted);
+            border-top: 1px solid #E2E8F0; padding-top: 12px;
+        }
+
+        /* Grid */
+        .col-12 { grid-column: span 12; }
+        .col-8  { grid-column: span 8; }
+        .col-7  { grid-column: span 7; }
+        .col-6  { grid-column: span 6; }
+        .col-5  { grid-column: span 5; }
+        .col-4  { grid-column: span 4; }
+        .col-3  { grid-column: span 3; }
+
+        /* Card */
+        .card { background: var(--bg-light); border-radius: 6px; padding: 18px 20px; border-top: 4px solid var(--secondary-blue); }
+        .card.accent { border-top-color: var(--accent-cyan); }
+        .card.green  { border-top-color: #10B981; }
+        .card.orange { border-top-color: #F59E0B; }
+        .card.red    { border-top-color: #EF4444; }
+        .card.purple { border-top-color: #8B5CF6; }
+        .card h3 { font-size: 16px; color: var(--dark-navy); margin-bottom: 8px; font-weight: 700; }
+        .card p  { font-size: 13px; line-height: 1.55; color: var(--text-muted); }
+
+        /* Lists */
+        ul.plist { list-style: none; }
+        ul.plist li { position: relative; padding-left: 20px; margin-bottom: 9px; font-size: 14px; line-height: 1.5; color: var(--text-main); }
+        ul.plist li::before { content: "■"; position: absolute; left: 0; color: var(--accent-cyan); font-size: 10px; top: 4px; }
+        ul.plist.sm li { font-size: 12px; margin-bottom: 6px; }
+
+        /* Agenda */
+        .agenda-grid { grid-column: span 12; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .agenda-item {
+            background: var(--bg-light); padding: 16px; border-radius: 6px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            gap: 10px; border-top: 4px solid var(--secondary-blue);
+            transition: all 0.2s; cursor: pointer;
+        }
+        .agenda-item:hover { transform: translateY(-4px); border-top-color: var(--accent-cyan); background: #F0F9FF; }
+        .agenda-num { font-size: 18px; font-weight: 700; color: var(--primary-blue); background: #DBEAFE; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .agenda-text h3 { font-size: 14px; color: var(--dark-navy); font-weight: 700; margin-bottom: 3px; }
+        .agenda-text p  { font-size: 11px; color: var(--text-muted); }
+
+        /* Stats */
+        .stat-grid { grid-column: span 12; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .stat-item { background: var(--bg-light); border-radius: 6px; padding: 18px 14px; text-align: center; border-bottom: 4px solid var(--secondary-blue); }
+        .stat-number { font-size: 32px; font-weight: 700; color: var(--primary-blue); line-height: 1.1; margin-bottom: 5px; }
+        .stat-label  { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Table */
+        .cmp-table { grid-column: span 12; width: 100%; border-collapse: collapse; font-size: 13px; }
+        .cmp-table th { background: var(--dark-navy); color: var(--white); padding: 11px 14px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cmp-table th:first-child { border-top-left-radius: 6px; }
+        .cmp-table th:last-child  { border-top-right-radius: 6px; }
+        .cmp-table td { padding: 10px 14px; border-bottom: 1px solid #E2E8F0; color: var(--text-main); vertical-align: top; }
+        .cmp-table tr:nth-child(even) td { background: var(--bg-light); }
+        .tag-yes   { display: inline-block; background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .tag-no    { display: inline-block; background: #FEE2E2; color: #991B1B; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .tag-save  { display: inline-block; background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+
+        /* Quote */
+        .quote-block { grid-column: span 12; background: linear-gradient(135deg, var(--dark-navy) 0%, var(--primary-blue) 100%); color: var(--white); border-radius: 8px; padding: 30px 50px; text-align: center; }
+        .quote-block p { font-size: 20px; font-weight: 600; line-height: 1.5; font-style: italic; }
+        .quote-block span { display: block; margin-top: 14px; font-size: 12px; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Highlight box */
+        .highlight-box { background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px 16px; }
+        .highlight-box h4 { color: var(--primary-blue); font-size: 13px; margin-bottom: 4px; font-weight: 700; }
+        .highlight-box p  { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+        /* Nav – bottom right */
+        .nav-controls { position: fixed; bottom: 20px; right: 28px; display: flex; gap: 8px; z-index: 1000; }
+        .nav-btn { background: var(--secondary-blue); color: var(--white); border: none; padding: 8px 18px; font-size: 13px; font-weight: 600; border-radius: 4px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .nav-btn:hover { background: var(--primary-blue); }
+        .slide-counter { position: fixed; bottom: 26px; left: 28px; font-size: 12px; color: rgba(255,255,255,0.5); z-index: 1000; font-weight: 500; }
+
+        /* Click zones */
+        .click-zone { position: fixed; top: 0; bottom: 0; width: 60px; z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.15); font-size: 28px; transition: background 0.2s, color 0.2s; user-select: none; }
+        .click-zone:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); }
+        .click-zone-left  { left: 0; }
+        .click-zone-right { right: 0; }
+
+        /* ═══ AFTERNOON-SPECIFIC STYLES ═══ */
+
+        /* Workflow boxes */
+        .wf-node { border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; text-align: center; line-height: 1.4; }
+        .wf-trigger  { background: #1E3A8A; color: white; }
+        .wf-ai       { background: #0E7490; color: white; }
+        .wf-human    { background: #92400E; color: white; }
+        .wf-gate     { background: #5B21B6; color: white; border: 2px solid rgba(255,255,255,0.3); }
+        .wf-output   { background: #065F46; color: white; }
+        .wf-arrow    { color: var(--accent-cyan); font-size: 22px; font-weight: 700; line-height: 1; text-align: center; }
+
+        /* Process steps */
+        .proc-step {
+            flex: 1; text-align: center; position: relative;
+        }
+        .proc-dot {
+            width: 52px; height: 52px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 16px; color: white;
+            margin: 0 auto 10px; position: relative; z-index: 2;
+            border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        .proc-title { font-weight: 700; font-size: 14px; color: var(--dark-navy); margin-bottom: 5px; }
+        .proc-desc  { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+        .proc-connector {
+            position: absolute; top: 24px; left: 56%; right: -6%;
+            height: 3px; background: linear-gradient(90deg, var(--secondary-blue), var(--accent-cyan)); z-index: 1;
+        }
+
+        /* Risk cards */
+        .risk-card { background: var(--bg-light); border-radius: 8px; padding: 14px 16px; border-left: 4px solid #EF4444; }
+        .risk-card h4 { font-size: 14px; color: var(--dark-navy); margin-bottom: 5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .risk-card p  { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+        .risk-card .example { font-size: 11px; color: #B45309; background: #FEF3C7; border-radius: 4px; padding: 4px 8px; margin-top: 6px; display: inline-block; }
+
+        /* Golden rules */
+        .rule-card { background: var(--bg-light); border-radius: 8px; padding: 14px 16px; border-left: 4px solid #F59E0B; display: flex; align-items: flex-start; gap: 12px; }
+        .rule-num { width: 32px; height: 32px; background: #F59E0B; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; }
+        .rule-card h4 { font-size: 14px; color: var(--dark-navy); margin-bottom: 3px; font-weight: 700; }
+        .rule-card p  { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Quiz cards */
+        .quiz-card { background: var(--bg-light); border-radius: 10px; padding: 18px; border-top: 4px solid var(--secondary-blue); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; height: 100%; }
+        .quiz-card .q-emoji { font-size: 38px; }
+        .quiz-card .q-text { font-size: 16px; font-weight: 700; color: var(--dark-navy); line-height: 1.4; }
+        .quiz-card .q-vote { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        /* Pill (reused from morning) */
+        .prompt-pill { display: flex; align-items: flex-start; gap: 12px; background: var(--bg-light); border-radius: 8px; padding: 12px 14px; border-left: 4px solid var(--secondary-blue); }
+        .pill-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; }
+        .pill-title { font-weight: 700; font-size: 13px; color: var(--dark-navy); margin-bottom: 2px; }
+        .pill-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Step example box */
+        .step-example { background: #0F172A; border-radius: 6px; padding: 10px 14px; font-size: 11px; color: #94A3B8; font-family: 'Courier New', monospace; line-height: 1.5; margin-top: 6px; }
+        .step-example .ex-label { color: var(--accent-cyan); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Segoe UI', sans-serif; font-weight: 700; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="click-zone click-zone-left"  onclick="prevSlide(event)">&#10094;</div>
+<div class="click-zone click-zone-right" onclick="nextSlide(event)">&#10095;</div>
+<div class="slide-counter" id="slideCounter">1 / 18</div>
+<div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide(event)">&#8592; Back</button>
+    <button class="nav-btn" onclick="toggleFullscreen(event)" id="fsBtn">Full Screen</button>
+    <button class="nav-btn" onclick="nextSlide(event)">Next &#8594;</button>
+</div>
+
+<!-- ═══ SLIDE 1 – COVER ═══ -->
+<section class="slide title-slide active" id="slide-1">
+    <div class="badge">AI Training Workshop &nbsp;·&nbsp; Afternoon Session</div>
+    <h1>Putting AI to Work</h1>
+    <h2>From Concepts to Real Business Automation</h2>
+    <div class="meta-box">
+        <span><strong>Date:</strong> July 28, 2026</span>
+        <span><strong>Time:</strong> 1:00 PM – 4:00 PM</span>
+        <span><strong>Audience:</strong> All Staff &amp; Teams</span>
+    </div>
+</section>
+
+<!-- ═══ SLIDE 2 – TABLE OF CONTENTS ═══ -->
+<section class="slide" id="slide-2">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Afternoon Agenda</div>
+            <div class="slide-title">What We Cover This Afternoon</div>
+        </div>
+        <span class="time-chip">1:00 PM – 4:00 PM</span>
+    </div>
+    <div class="slide-body" style="align-content:center;">
+        <div class="agenda-grid">
+            <div class="agenda-item" onclick="goToSlide(3)">
+                <div class="agenda-num">01</div>
+                <div class="agenda-text">
+                    <h3>Energy Booster &amp; Fun Game</h3>
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(4)">
+                <div class="agenda-num">02</div>
+                <div class="agenda-text">
+                    <h3>Apply AI in Business</h3>
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(12)">
+                <div class="agenda-num">03</div>
+                <div class="agenda-text">
+                    <h3>Activity 2: AI Workflow Design</h3>
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(14)">
+                <div class="agenda-num">04</div>
+                <div class="agenda-text">
+                    <h3>Tea Break</h3>
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(15)">
+                <div class="agenda-num">05</div>
+                <div class="agenda-text">
+                    <h3>Team Presentations</h3>
+                </div>
+            </div>
+            <div class="agenda-item" onclick="goToSlide(16)">
+                <div class="agenda-num">06</div>
+                <div class="agenda-text">
+                    <h3>Q&amp;A &amp; Closing</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-12" style="margin-top:-4px;">
+            <div class="highlight-box">
+                <h4>Morning Recap</h4>
+                <p>We covered: What is AI · AI Timeline · Current AI Landscape · Prompt Template (Role + Context + Task + Constraints + Output) · Live Demo · Activity 1</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 2 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 3 – ENERGY BOOSTER / FUN GAME ═══ -->
+<section class="slide" id="slide-3">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 01</div>
+            <div class="slide-title">Energy Booster: Kahoot - scan the QR code</div>
+        </div>
+        <span class="time-chip">Quick Poll</span>
+    <!-- </div>
+    <div class="slide-body" style="align-content:center; gap:16px;">
+        <div class="col-12" style="text-align:center; margin-bottom:-4px;">
+            <p style="font-size:15px; color:var(--text-muted);">🙋 Raise your hand — or shout your answer!</p>
+        </div>
+        <div class="col-4">
+            <div class="quiz-card" style="border-top-color:#10B981;">
+                <div class="q-emoji">📧</div>
+                <div class="q-text">"I just sent you a draft of the Q2 report. The tone is professional, 150 words, with 3 bullet highlights. Ready to send to the client?"</div>
+                <div style="margin-top:8px; background:#D1FAE5; border-radius:6px; padding:8px 12px; width:100%;">
+                    <p style="font-size:13px; font-weight:700; color:#065F46;">🤖 AI — Generated in &lt; 5 seconds</p>
+                    <p style="font-size:11px; color:#065F46; margin-top:2px;">ChatGPT with a good prompt template</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="quiz-card" style="border-top-color:#F59E0B;">
+                <div class="q-emoji">🤔</div>
+                <div class="q-text">"We should pivot our entire customer strategy because I have a gut feeling the market is shifting — I've seen it in my 20 years of experience."</div>
+                <div style="margin-top:8px; background:#FEF3C7; border-radius:6px; padding:8px 12px; width:100%;">
+                    <p style="font-size:13px; font-weight:700; color:#92400E;">👤 Human — Intuition &amp; Experience</p>
+                    <p style="font-size:11px; color:#92400E; margin-top:2px;">AI can support, but judgment is human</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="quiz-card" style="border-top-color:#8B5CF6;">
+                <div class="q-emoji">📊</div>
+                <div class="q-text">"Here are 847 customer reviews from last quarter, sorted by sentiment, with a summary of the top 5 recurring complaints and suggested actions."</div>
+                <div style="margin-top:8px; background:#EDE9FE; border-radius:6px; padding:8px 12px; width:100%;">
+                    <p style="font-size:13px; font-weight:700; color:#5B21B6;">🤖 AI — Done in 30 seconds</p>
+                    <p style="font-size:11px; color:#5B21B6; margin-top:2px;">Would take a human analyst 2–3 days</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div style="background:#0F172A; border-radius:8px; padding:16px 24px; display:flex; align-items:center; gap:20px;">
+                <div style="font-size:30px;">💡</div>
+                <div>
+                    <p style="color:var(--accent-cyan); font-weight:700; font-size:14px; margin-bottom:3px;">Key Insight from This Game</p>
+                    <p style="color:rgba(255,255,255,0.7); font-size:13px;">AI excels at <strong style="color:white;">speed, scale, and structured tasks</strong>. Humans excel at <strong style="color:white;">judgment, empathy, and strategy</strong>. The winning combination is both working together.</p>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 3 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 4 – SECTION: APPLY AI IN BUSINESS ═══ -->
+<section class="slide section-slide" id="slide-4">
+    <div class="section-num">02</div>
+    <h1>Apply AI in Business</h1>
+    <p>Real scenarios, real workflows, real results</p>
+</section>
+
+<!-- ═══ SLIDE 5 – SCENARIO INTRO ═══ -->
+<section class="slide" id="slide-5">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Apply AI in Business · Our Working Scenario</div>
+            <div class="slide-title">Case Study: After-Sales Complaint Handling</div>
+        </div>
+    </div>
+    <div class="slide-body" style="align-content:start; gap:16px;">
+
+        <!-- Case File Hero Box -->
+        <div class="col-12">
+            <div style="background:linear-gradient(135deg,#1E3A8A 0%,#0E7490 100%); border-radius:12px; padding:22px 28px; color:white; display:flex; gap:24px; align-items:center;">
+                <div style="font-size:52px; flex-shrink:0; line-height:1;">📋</div>
+                <div style="flex:1;">
+                    <div style="font-size:10px; font-weight:700; letter-spacing:2.5px; opacity:0.65; margin-bottom:6px;">CASE SCENARIO · AFTERNOON SESSION</div>
+                    <div style="font-size:19px; font-weight:800; margin-bottom:10px; line-height:1.3;">GreenBuild Supply Co. — Customer Complaint &amp; After-Sales Resolution</div>
+                    <div style="font-size:13px; opacity:0.92; line-height:1.6;">A mid-sized B2B supplier with <strong>180 staff across 3 departments</strong> receives <strong>60–80 customer complaints per month</strong> — covering delivery delays, incorrect shipments, and invoice disputes. The current manual process takes <strong>3–7 business days</strong> per case, causing customer churn and staff burnout. <em>Sound familiar?</em></div>
+                </div>
+                <div style="flex-shrink:0; text-align:center; background:rgba(255,255,255,0.12); border-radius:10px; padding:14px 20px;">
+                    <div style="font-size:32px; font-weight:900; line-height:1;">3–7</div>
+                    <div style="font-size:11px; opacity:0.8; margin-top:4px; font-weight:600;">DAYS TO<br>RESOLVE</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3 Pain Point Cards -->
+        <div class="col-4">
+            <div class="card" style="height:100%; border-left:4px solid #DC2626;">
+                <div style="font-size:28px; margin-bottom:10px;">📭</div>
+                <h3 style="color:#DC2626; font-size:14px; margin-bottom:8px;">No Unified Intake</h3>
+                <p style="font-size:12px; line-height:1.6;">Complaints arrive via email, phone, WhatsApp, and a web form — scattered across 4 channels with no central tracking. Staff manually check each one and re-type into a spreadsheet.</p>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card accent" style="height:100%; border-left:4px solid #F59E0B;">
+                <div style="font-size:28px; margin-bottom:10px;">⏳</div>
+                <h3 style="color:#F59E0B; font-size:14px; margin-bottom:8px;">Slow Cross-Department Handoffs</h3>
+                <p style="font-size:12px; line-height:1.6;">Customer Service logs the case, then emails Operations, who forwards to Finance if billing is involved. Each email handoff adds <strong>1–2 days</strong> of waiting, with no visibility on status.</p>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card green" style="height:100%; border-left:4px solid #7C3AED;">
+                <div style="font-size:28px; margin-bottom:10px;">❓</div>
+                <h3 style="color:#7C3AED; font-size:14px; margin-bottom:8px;">Inconsistent Resolution Quality</h3>
+                <p style="font-size:12px; line-height:1.6;">No standard template, no SLA tracking, no feedback loop. Resolution outcome depends entirely on who handles the ticket — same complaint can yield very different results.</p>
+            </div>
+        </div>
+
+        <!-- Bottom guide note -->
+        <div class="col-12" style="background:rgba(14,116,144,0.08); border-radius:8px; padding:10px 18px; border:1px solid rgba(14,116,144,0.25); display:flex; align-items:center; gap:10px;">
+            <span style="font-size:16px;">💡</span>
+            <p style="font-size:12px; color:var(--accent-cyan); font-weight:700; margin:0;">This scenario is our reference for the entire afternoon.</p>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 5 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 6 – SCENARIO DEEP DIVE ═══ -->
+<section class="slide" id="slide-6">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Scenario Analysis · GreenBuild Supply Co.</div>
+            <div class="slide-title">Who Is Affected — &amp; What Do We Need to Begin?</div>
+        </div>
+    </div>
+    <br>
+    <br>
+    <div class="slide-body" style="align-content:start; gap:14px;">
+
+       
+
+        <!-- Row 2: Prerequisites -->
+        <div class="col-12" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+
+            <div style="background:rgba(30,58,138,0.07); border-radius:8px; padding:14px 16px; border:1px solid rgba(30,58,138,0.2);">
+                <div style="font-size:11px; font-weight:800; color:#1E3A8A; margin-bottom:10px; letter-spacing:0.8px;">📂 DATA WE NEED</div>
+                <ul class="plist sm">
+                    <li>Complaint history — last 12 months</li>
+                    <li>Shipment &amp; delivery records (ERP)</li>
+                    <li>Invoice and billing correction logs</li>
+                    <li>Average resolution time by case type</li>
+                    <li>Customer satisfaction scores (CSAT)</li>
+                </ul>
+            </div>
+
+            <div style="background:rgba(14,116,144,0.07); border-radius:8px; padding:14px 16px; border:1px solid rgba(14,116,144,0.2);">
+                <div style="font-size:11px; font-weight:800; color:#0E7490; margin-bottom:10px; letter-spacing:0.8px;">👥 STAKEHOLDERS TO INVOLVE</div>
+                <ul class="plist sm">
+                    <li>CS Team Lead — process owner, defines rules</li>
+                    <li>Operations Manager — approves workflow changes</li>
+                    <li>Finance Controller — data access &amp; compliance</li>
+                    <li>IT / System Admin — ERP integration</li>
+                    <li>Sales Manager — escalation authority</li>
+                </ul>
+            </div>
+
+            <!-- <div style="background:rgba(5,150,105,0.08); border-radius:8px; padding:14px 16px; border:1px solid rgba(5,150,105,0.25);">
+                <div style="font-size:11px; font-weight:800; color:#059669; margin-bottom:10px; letter-spacing:0.8px;">✅ ARE WE READY FOR SLIDE 7?</div>
+                <ul class="plist sm">
+                    <li>Process is documented (as-is flow)</li>
+                    <li>Pain points are visible by department</li>
+                    <li>Data sources have been identified</li>
+                    <li>Key decision-makers are in the room</li>
+                </ul>
+                <div style="margin-top:12px; padding:8px 12px; background:#059669; border-radius:6px; text-align:center; color:white; font-size:11px; font-weight:800; letter-spacing:0.5px;">→ APPLY THE 5-STEP FRAMEWORK</div>
+            </div> -->
+        </div>
+
+         <!-- Row 1: 4 Departments -->
+        <div class="col-12" style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+
+            <div style="background:var(--bg-light); border-radius:8px; padding:14px 16px; border-top:4px solid #1E3A8A;">
+                <div style="font-size:22px; margin-bottom:6px;">💬</div>
+                <div style="font-size:12px; font-weight:800; color:#1E3A8A; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Customer Service</div>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Role:</strong> First point of contact — receives complaints, logs cases, communicates status updates to customers.</p>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Current bottleneck:</strong> 2–3 hrs/day writing manual email responses; no template, no tracking system.</p>
+                <div style="font-size:10px; font-weight:700; color:#DC2626; background:#FEE2E2; border-radius:4px; padding:4px 8px;">⚠ Spends 40% of time on admin, not customers</div>
+            </div>
+
+            <div style="background:var(--bg-light); border-radius:8px; padding:14px 16px; border-top:4px solid #0E7490;">
+                <div style="font-size:22px; margin-bottom:6px;">📦</div>
+                <div style="font-size:12px; font-weight:800; color:#0E7490; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Operations / Warehouse</div>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Role:</strong> Investigates delivery and shipment issues — checks ERP records, coordinates re-delivery or product replacement.</p>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Current bottleneck:</strong> No real-time visibility; must manually query multiple systems to trace a shipment.</p>
+                <div style="font-size:10px; font-weight:700; color:#DC2626; background:#FEE2E2; border-radius:4px; padding:4px 8px;">⚠ Each investigation takes 45–90 min</div>
+            </div>
+
+            <div style="background:var(--bg-light); border-radius:8px; padding:14px 16px; border-top:4px solid #059669;">
+                <div style="font-size:22px; margin-bottom:6px;">💳</div>
+                <div style="font-size:12px; font-weight:800; color:#059669; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Finance / AP Team</div>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Role:</strong> Handles billing disputes — issues credit notes, corrects invoices, reconciles accounts when errors are confirmed.</p>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Current bottleneck:</strong> Manual invoice correction with no audit trail; errors discovered too late.</p>
+                <div style="font-size:10px; font-weight:700; color:#DC2626; background:#FEE2E2; border-radius:4px; padding:4px 8px;">⚠ ~20% of complaints involve billing errors</div>
+            </div>
+
+            <div style="background:var(--bg-light); border-radius:8px; padding:14px 16px; border-top:4px solid #7C3AED;">
+                <div style="font-size:22px; margin-bottom:6px;">👔</div>
+                <div style="font-size:12px; font-weight:800; color:#7C3AED; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Sales Manager</div>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Role:</strong> Approves compensation decisions (discounts, free replacement) and handles escalated high-value complaints.</p>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;"><strong>Current bottleneck:</strong> Makes decisions blind — no consolidated complaint data, relies on verbal reports.</p>
+                <div style="font-size:10px; font-weight:700; color:#DC2626; background:#FEE2E2; border-radius:4px; padding:4px 8px;">⚠ Approval waits add 1–2 days per case</div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 6 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 7 – 5-STEP FRAMEWORK ═══ -->
+<section class="slide" id="slide-7">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">AI Problem-Solving Framework</div>
+            <div class="slide-title">How to Approach a Business Problem with AI</div>
+        </div>
+        <span class="time-chip">5-Step Process</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:18px;">
+
+        <!-- 5 steps horizontal -->
+        <div class="col-12" style="display:flex; justify-content:space-between; position:relative; gap:0;">
+            <!-- connecting line -->
+            <div style="position:absolute; top:24px; left:5%; right:5%; height:3px; background:linear-gradient(90deg, #1E3A8A, #0E7490, #7C3AED, #059669, #92400E); z-index:0; border-radius:2px;"></div>
+
+            <div class="proc-step" style="z-index:1;">
+                <div class="proc-dot" style="background:#1E3A8A;">01</div>
+                <div class="proc-title">Map</div>
+                <div class="proc-desc">Document the current process — who does what, in which order, and how long each step takes</div>
+            </div>
+            <div class="proc-step" style="z-index:1;">
+                <div class="proc-dot" style="background:#0E7490;">02</div>
+                <div class="proc-title">Identify</div>
+                <div class="proc-desc">Highlight pain points — slow, error-prone, repetitive steps that waste significant time or resources</div>
+            </div>
+            <div class="proc-step" style="z-index:1;">
+                <div class="proc-dot" style="background:#7C3AED;">03</div>
+                <div class="proc-title">Design</div>
+                <div class="proc-desc">Build a mapping table (current vs. AI steps) then draw the new workflow with agent roles &amp; Human-in-the-Loop gates</div>
+            </div>
+            <div class="proc-step" style="z-index:1;">
+                <div class="proc-dot" style="background:#059669;">04</div>
+                <div class="proc-title">Analyse</div>
+                <div class="proc-desc">Evaluate each agent's function — extract key insights, understand dependencies, and quantify expected benefits</div>
+            </div>
+            <div class="proc-step" style="z-index:1;">
+                <div class="proc-dot" style="background:#92400E;">05</div>
+                <div class="proc-title">Automate</div>
+                <div class="proc-desc">Build, test and deploy the automation — start with a pilot, measure results, then scale</div>
+            </div>
+        </div>
+
+        <!-- Return loop arrow indicator -->
+        <div class="col-12" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:-8px;">
+            <div style="flex:1; height:2px; background:linear-gradient(90deg, transparent, #E2E8F0); border-radius:1px;"></div>
+            <div style="background:#F1F5F9; border-radius:20px; padding:6px 20px; font-size:12px; color:var(--text-muted); font-weight:600; white-space:nowrap;">🔁 Continuous Improvement Loop</div>
+            <div style="flex:1; height:2px; background:linear-gradient(90deg, #E2E8F0, transparent); border-radius:1px;"></div>
+        </div>
+
+        <!-- Step detail cards -->
+        <div class="col-12" style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:-4px;">
+            <div style="background:#EFF6FF; border-radius:6px; padding:12px 14px; border-top:3px solid #1E3A8A;">
+                <div style="font-size:11px; font-weight:700; color:#1E3A8A; margin-bottom:5px;">MAP · Template</div>
+                <ul class="plist sm" style="color:#1E40AF;">
+                    <li>List all steps</li>
+                    <li>Assign owners</li>
+                    <li>Record time per step</li>
+                </ul>
+            </div>
+            <div style="background:#ECFEFF; border-radius:6px; padding:12px 14px; border-top:3px solid #0E7490;">
+                <div style="font-size:11px; font-weight:700; color:#0E7490; margin-bottom:5px;">IDENTIFY · Look For</div>
+                <ul class="plist sm" style="color:#0E7490;">
+                    <li>Long wait times</li>
+                    <li>Manual data entry</li>
+                    <li>Repeated mistakes</li>
+                </ul>
+            </div>
+            <div style="background:#F5F3FF; border-radius:6px; padding:12px 14px; border-top:3px solid #7C3AED;">
+                <div style="font-size:11px; font-weight:700; color:#7C3AED; margin-bottom:5px;">DESIGN · Create</div>
+                <ul class="plist sm" style="color:#7C3AED;">
+                    <li>Before/After table</li>
+                    <li>AI vs. Manual map</li>
+                    <li>Workflow diagram</li>
+                </ul>
+            </div>
+            <div style="background:#F0FDF4; border-radius:6px; padding:12px 14px; border-top:3px solid #059669;">
+                <div style="font-size:11px; font-weight:700; color:#059669; margin-bottom:5px;">ANALYSE · Explore</div>
+                <ul class="plist sm" style="color:#059669;">
+                    <li>Agent roles &amp; tasks</li>
+                    <li>Key insights gained</li>
+                    <li>Quantified benefits</li>
+                </ul>
+            </div>
+            <div style="background:#FFF7ED; border-radius:6px; padding:12px 14px; border-top:3px solid #92400E;">
+                <div style="font-size:11px; font-weight:700; color:#92400E; margin-bottom:5px;">AUTOMATE · Steps</div>
+                <ul class="plist sm" style="color:#92400E;">
+                    <li>Pilot with 1 team</li>
+                    <li>Measure results</li>
+                    <li>Refine &amp; scale</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 7 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 8 – AUTOMATION WORKFLOW DIAGRAM ═══ -->
+<section class="slide" id="slide-8">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Output · Step 5: Automate</div>
+            <div class="slide-title">AI-Powered CRM Automation Workflow</div>
+        </div>
+        <span class="time-chip">Multi-Agent Workflow</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:0;">
+        <div class="col-12" style="display:flex; flex-direction:column; align-items:center; gap:5px;">
+
+            <!-- Trigger -->
+            <div class="wf-node wf-trigger" style="width:380px; padding:11px 20px; font-size:14px;">
+                📧 Trigger: Customer Email / Message Received
+            </div>
+            <div class="wf-arrow">↓</div>
+
+            <!-- AI Classifier -->
+            <div class="wf-node wf-ai" style="width:440px; padding:11px 20px;">
+                🤖 AI Agent 1: Classify Intent, Urgency &amp; Sentiment
+                <div style="font-weight:400; font-size:11px; opacity:0.85; margin-top:3px;">Reads full message · Detects language · Tags priority level</div>
+            </div>
+
+            <!-- Branch -->
+            <div style="display:flex; justify-content:center; gap:60px; font-size:24px; color:var(--accent-cyan); line-height:1; margin:2px 0;">
+                <span>↙</span><span style="opacity:0;">·</span><span>↘</span>
+            </div>
+
+            <div style="display:flex; justify-content:center; gap:16px; width:100%;">
+                <!-- Left: Simple path -->
+                <div style="display:flex; flex-direction:column; align-items:center; gap:5px; width:44%;">
+                    <div style="background:#065F46; color:white; border-radius:6px; padding:7px 14px; font-size:12px; font-weight:600; width:100%; text-align:center;">✅ Simple / FAQ / Standard Query</div>
+                    <div class="wf-arrow" style="font-size:18px;">↓</div>
+                    <div class="wf-node wf-ai" style="font-size:12px; padding:10px 14px; width:100%;">
+                        🤖 AI Agent 2: Generate Draft Response
+                        <div style="font-weight:400; font-size:11px; opacity:0.85; margin-top:3px;">From knowledge base + similar past tickets</div>
+                    </div>
+                </div>
+                <!-- Right: Complex path -->
+                <div style="display:flex; flex-direction:column; align-items:center; gap:5px; width:44%;">
+                    <div style="background:#92400E; color:white; border-radius:6px; padding:7px 14px; font-size:12px; font-weight:600; width:100%; text-align:center;">⚠️ Complex / Complaint / Escalation</div>
+                    <div class="wf-arrow" style="font-size:18px;">↓</div>
+                    <div class="wf-node wf-human" style="font-size:12px; padding:10px 14px; width:100%;">
+                        👤 Human Agent: Reviews AI Summary
+                        <div style="font-weight:400; font-size:11px; opacity:0.85; margin-top:3px;">Full context + AI-suggested reply provided</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Merge arrows -->
+            <div style="display:flex; justify-content:center; gap:100px; font-size:24px; color:var(--accent-cyan); line-height:1; margin:2px 0;">
+                <span>↘</span><span style="opacity:0;">·</span><span>↙</span>
+            </div>
+
+            <!-- Human-in-the-Loop gate -->
+            <div class="wf-node wf-gate" style="width:420px; padding:11px 20px;">
+                ✅ Human-in-the-Loop: Review &amp; Approve
+                <div style="font-weight:400; font-size:11px; opacity:0.85; margin-top:3px;">Mandatory gate — no response sent without human approval</div>
+            </div>
+            <div class="wf-arrow">↓</div>
+
+            <!-- Outputs -->
+            <div style="display:flex; justify-content:center; gap:12px; width:100%;">
+                <div class="wf-node wf-output" style="flex:1; max-width:220px; padding:9px 14px; font-size:12px;">📤 Response Sent to Customer</div>
+                <div class="wf-node wf-output" style="flex:1; max-width:220px; padding:9px 14px; font-size:12px;">🗃️ CRM Record Auto-Updated</div>
+                <div class="wf-node wf-output" style="flex:1; max-width:220px; padding:9px 14px; font-size:12px;">📊 Analytics &amp; KPIs Logged</div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="col-12" style="display:flex; gap:10px; margin-top:6px; justify-content:center;">
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted);">
+                <div style="width:14px; height:14px; background:#1E3A8A; border-radius:3px;"></div>Trigger
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted);">
+                <div style="width:14px; height:14px; background:#0E7490; border-radius:3px;"></div>AI Agent
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted);">
+                <div style="width:14px; height:14px; background:#92400E; border-radius:3px;"></div>Human Step
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted);">
+                <div style="width:14px; height:14px; background:#5B21B6; border-radius:3px;"></div>Approval Gate
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted);">
+                <div style="width:14px; height:14px; background:#065F46; border-radius:3px;"></div>Output
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 8 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 9 – AI RISKS ═══ -->
+<section class="slide" id="slide-9">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Responsible AI Use</div>
+            <div class="slide-title">The 5 Real Risks of Using AI at Work</div>
+        </div>
+        <span class="time-chip">Know Before You Deploy</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:12px;">
+        <div class="col-6">
+            <div class="risk-card">
+                <h4>🔓 1. Security — Data Leakage</h4>
+                <p>Employees paste confidential client data, financial records, or internal contracts into public AI tools like ChatGPT — which may use that data for training.</p>
+                <span class="example">⚠️ Example: Sales team uploads customer pricing list to public AI → competitor data exposure risk</span>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="risk-card" style="border-left-color:#F59E0B;">
+                <h4>⚖️ 2. Compliance — Regulatory Violations</h4>
+                <p>AI-generated content may not meet legal, financial, or industry-specific compliance standards such as PDPA, GDPR, or internal approval policies.</p>
+                <span class="example" style="background:#FEF9C3; color:#713F12;">⚠️ Example: HR uses AI to screen CVs — risk of biased or non-compliant decisions</span>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="risk-card" style="border-left-color:#8B5CF6;">
+                <h4>🔄 3. Consistency — Unpredictable Outputs</h4>
+                <p>The same prompt submitted twice may produce different results. AI lacks a fixed, repeatable process — outputs vary by phrasing, context, and timing.</p>
+                <span class="example" style="background:#EDE9FE; color:#4C1D95;">⚠️ Example: Monthly reports generated by AI differ in structure each time — hard to compare</span>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="risk-card" style="border-left-color:#0E7490;">
+                <h4>💰 4. Cost — Uncontrolled API Spending</h4>
+                <p>Heavy or unmonitored use of AI APIs (GPT-4, Claude, etc.) can result in unexpected monthly bills of thousands of dollars without proper governance.</p>
+                <span class="example" style="background:#ECFEFF; color:#164E63;">⚠️ Example: Development team runs 10,000 API calls/day without a cost cap — bill spikes</span>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="risk-card" style="border-left-color:#DC2626;">
+                <h4>🧠 5. Hallucination — AI Confidently Provides Wrong Information</h4>
+                <p>AI models can generate completely false facts, fake citations, non-existent laws, or incorrect calculations — delivered with full confidence and professional tone. This is one of the most dangerous risks.</p>
+                <span class="example">⚠️ Example: Legal team uses AI to summarize contract terms — AI invents a clause that doesn't exist → signed incorrectly</span>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 9 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 10 – MINIMIZE RISKS ═══ -->
+<section class="slide" id="slide-10">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Risk Management</div>
+            <div class="slide-title">How to Minimize AI Risks</div>
+        </div>
+        <span class="time-chip">3 Strategies</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:16px;">
+        <div class="col-12">
+            <div style="background:linear-gradient(135deg, #5B21B6, #7C3AED); border-radius:10px; padding:20px 28px; display:flex; align-items:center; gap:24px; color:white;">
+                <div style="font-size:48px;">👤</div>
+                <div style="flex:1;">
+                    <div style="font-size:18px; font-weight:700; margin-bottom:6px;">Strategy 1: Human-in-the-Loop (HITL)</div>
+                    <p style="color:rgba(255,255,255,0.8); font-size:13px; margin-bottom:8px;">A mandatory human review step is placed between every AI output and every consequential action. No AI decision goes live without human sign-off.</p>
+                    <div style="display:flex; gap:12px;">
+                        <div style="background:rgba(255,255,255,0.15); border-radius:6px; padding:8px 14px; font-size:12px;"><strong>Validate Inputs:</strong> Check what data you're giving AI before submitting</div>
+                        <div style="background:rgba(255,255,255,0.15); border-radius:6px; padding:8px 14px; font-size:12px;"><strong>Verify Outputs:</strong> Fact-check AI results before using or sharing them</div>
+                        <div style="background:rgba(255,255,255,0.15); border-radius:6px; padding:8px 14px; font-size:12px;"><strong>Approve Actions:</strong> No automated action executes without explicit human approval</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div style="background:#F0FDF4; border:2px solid #86EFAC; border-radius:10px; padding:18px 20px; height:100%;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                    <div style="font-size:28px;">🔒</div>
+                    <div style="font-size:16px; font-weight:700; color:#065F46;">Strategy 2: Data Governance Policy</div>
+                </div>
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Establish clear company-wide rules about what data can and cannot be shared with AI tools.</p>
+                <ul class="plist sm">
+                    <li>Classify data: Public / Internal / Confidential / Restricted</li>
+                    <li>Approve only specific AI tools for work use (whitelist)</li>
+                    <li>Use enterprise AI plans with no training on your data (e.g., ChatGPT Team, Claude for Work)</li>
+                </ul>
+                <div style="background:#D1FAE5; border-radius:6px; padding:8px 12px; margin-top:10px;">
+                    <p style="font-size:11px; color:#065F46;"><strong>Example rule:</strong> "Never input customer names, IDs, or financial figures into any public AI tool without prior IT approval."</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div style="background:#EFF6FF; border:2px solid #93C5FD; border-radius:10px; padding:18px 20px; height:100%;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                    <div style="font-size:28px;">📋</div>
+                    <div style="font-size:16px; font-weight:700; color:#1E40AF;">Strategy 3: Regular Auditing &amp; Monitoring</div>
+                </div>
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Treat AI like any business system — it needs scheduled reviews, usage tracking, and quality audits.</p>
+                <ul class="plist sm">
+                    <li>Monthly spot-check: sample 10–20 AI outputs for accuracy</li>
+                    <li>Track API usage costs weekly to catch anomalies early</li>
+                    <li>Collect user feedback on AI quality (thumbs up/down logs)</li>
+                </ul>
+                <div style="background:#DBEAFE; border-radius:6px; padding:8px 12px; margin-top:10px;">
+                    <p style="font-size:11px; color:#1E40AF;"><strong>Example:</strong> Customer service manager reviews 15 AI-drafted replies every Friday to ensure tone and accuracy remain on-brand.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 10 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 11 – 5 GOLDEN RULES ═══ -->
+<section class="slide" id="slide-11">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Summary · Best Practices</div>
+            <div class="slide-title">5 Golden Rules When Using AI at Work</div>
+        </div>
+        <span class="time-chip">Remember These Always</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:12px;">
+        <div class="col-12">
+            <div class="rule-card">
+                <div class="rule-num">1</div>
+                <div>
+                    <h4>🔍 Verify Before You Trust — Always fact-check AI outputs</h4>
+                    <p>AI can sound confident while being completely wrong. Never send, present, or act on AI content without independent verification. </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="rule-card" style="border-left-color:#EF4444;">
+                <div class="rule-num" style="background:#EF4444;">2</div>
+                <div>
+                    <h4>🔒 Protect Sensitive Data — Never input confidential information into public AI</h4>
+                    <p>Treat public AI tools like a stranger on the street. Would you hand them your client list or salary data? Only use approved, enterprise AI platforms for sensitive work. </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="rule-card" style="border-left-color:#8B5CF6;">
+                <div class="rule-num" style="background:#8B5CF6;">3</div>
+                <div>
+                    <h4>👤 Keep Humans in Control — AI assists; humans decide</h4>
+                    <p>For any decision with real consequences — hiring, customer commitments, financial approvals — a human must be the final decision-maker. AI is your advisor, not your authority.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="rule-card" style="border-left-color:#0E7490;">
+                <div class="rule-num" style="background:#0E7490;">4</div>
+                <div>
+                    <h4>🌱 Start Small, Scale Smart</h4>
+                    <p>Pilot AI in one department or one task. Measure results for 4–6 weeks before expanding. </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="rule-card" style="border-left-color:#10B981;">
+                <div class="rule-num" style="background:#10B981;">5</div>
+                <div>
+                    <h4>📚 Keep Learning — AI evolves every month</h4>
+                    <p>The AI landscape changes faster than any other technology. Set aside 30 minutes weekly to explore new tools and updates. </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 11 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 12 – ACTIVITY 2 ═══ -->
+<section class="slide" id="slide-12">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Activity 2</div>
+            <div class="slide-title">Design an AI-Powered Workflow</div>
+        </div>
+        <span class="time-chip">30 Minutes · Group Work</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:16px;">
+        <!-- Flow steps -->
+        <div class="col-12" style="display:flex; gap:0; margin-bottom:0;">
+            <div style="flex:1; text-align:center; background:var(--bg-light); border-radius:8px; padding:14px 10px; border-top:3px solid #1E3A8A; position:relative; margin-right:18px;">
+                <div style="font-size:22px; font-weight:800; color:#1E3A8A;">①</div>
+                <div style="font-size:12px; font-weight:700; color:var(--dark-navy); margin-top:4px;">Map Process</div>
+                <div style="position:absolute; right:-14px; top:50%; transform:translateY(-50%); color:var(--accent-cyan); font-size:18px; z-index:5;">▶</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--bg-light); border-radius:8px; padding:14px 10px; border-top:3px solid #0E7490; position:relative; margin-right:18px;">
+                <div style="font-size:22px; font-weight:800; color:#0E7490;">②</div>
+                <div style="font-size:12px; font-weight:700; color:var(--dark-navy); margin-top:4px;">Identify Pain Points</div>
+                <div style="position:absolute; right:-14px; top:50%; transform:translateY(-50%); color:var(--accent-cyan); font-size:18px; z-index:5;">▶</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--bg-light); border-radius:8px; padding:14px 10px; border-top:3px solid #7C3AED; position:relative; margin-right:18px;">
+                <div style="font-size:22px; font-weight:800; color:#7C3AED;">③</div>
+                <div style="font-size:12px; font-weight:700; color:var(--dark-navy); margin-top:4px;">Design Workflow</div>
+                <div style="position:absolute; right:-14px; top:50%; transform:translateY(-50%); color:var(--accent-cyan); font-size:18px; z-index:5;">▶</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--bg-light); border-radius:8px; padding:14px 10px; border-top:3px solid #059669; position:relative; margin-right:18px;">
+                <div style="font-size:22px; font-weight:800; color:#059669;">④</div>
+                <div style="font-size:12px; font-weight:700; color:var(--dark-navy); margin-top:4px;">Analyse Workflow</div>
+                <div style="position:absolute; right:-14px; top:50%; transform:translateY(-50%); color:var(--accent-cyan); font-size:18px; z-index:5;">▶</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--bg-light); border-radius:8px; padding:14px 10px; border-top:3px solid #92400E;">
+                <div style="font-size:22px; font-weight:800; color:#92400E;">⑤</div>
+                <div style="font-size:12px; font-weight:700; color:var(--dark-navy); margin-top:4px;">Build Workflow</div>
+            </div>
+        </div>
+
+        <div class="col-7">
+            <div class="card" style="height:100%;">
+                <h3>📋 Your Team's Mission</h3>
+                <ul class="plist" style="margin-top:6px;">
+                    <li>Choose <strong>one business process</strong> from your department that currently involves significant manual effort</li>
+                    <li>Use the 5-step framework above to <strong>analyze and redesign</strong> that process with AI</li>
+                    <li>Identify which steps AI can automate and which need <strong>human oversight</strong></li>
+                    <li>Draw a <strong>future-state workflow diagram</strong> showing the AI-enhanced process</li>
+                    <li>Define where the <strong>Human-in-the-Loop</strong> approval gates should be placed</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-5" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:8px; padding:14px 16px;">
+                <p style="font-size:13px; color:#92400E; font-weight:700; margin-bottom:6px;">💻 Tools Allowed</p>
+                <p style="font-size:12px; color:#92400E;">ChatGPT · Claude · Gamma · Notion AI · Any AI tool you're comfortable with</p>
+            </div>
+            <div style="background:#EDE9FE; border:1px solid #C4B5FD; border-radius:8px; padding:14px 16px;">
+                <p style="font-size:13px; color:#5B21B6; font-weight:700; margin-bottom:6px;">🎯 Deliverable</p>
+                <p style="font-size:12px; color:#5B21B6;">· Which process that consume too much time?</p>
+                <p style="font-size:12px; color:#5B21B6;">· The main pain points</p>
+                <p style="font-size:12px; color:#5B21B6;">· A workflow diagram (hand-drawn or digital)</p>
+                <p style="font-size:12px; color:#5B21B6;">· Expected Business Benefits & ROI</p>
+            </div>
+            <div style="background:#D1FAE5; border:1px solid #6EE7B7; border-radius:8px; padding:14px 16px;">
+                <p style="font-size:13px; color:#065F46; font-weight:700; margin-bottom:6px;">⏱ Time Budget</p>
+                <p style="font-size:12px; color:#065F46;">Preparation: 30 mins · Presentation: 10 mins</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 12 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 13 – STEP GUIDE PART 1 (Steps 1–3) ═══ -->
+<section class="slide" id="slide-13">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Activity 2 · Step-by-Step Guide · Part 1 of 2</div>
+            <div class="slide-title">How to Complete Activity 2 — MAP, IDENTIFY, DESIGN</div>
+        </div>
+        <span class="time-chip">Steps 1 – 3 of 5</span>
+    </div>
+    <div class="slide-body" style="align-content:start; gap:14px;">
+        <div class="col-12">
+            <div class="prompt-pill" style="border-left-color:#1E3A8A; padding:14px 18px;">
+                <div class="pill-icon" style="background:#1E3A8A; width:40px; height:40px; font-size:16px;">01</div>
+                <div style="flex:1;">
+                    <div class="pill-title">MAP — Document Your Current Process</div>
+                    <div class="pill-desc">List every step in order. Write who does it, how long it takes, and what tools are used. Think: from the moment the task starts to when it is complete.</div>
+                    <div class="step-example"><div class="ex-label">Example output</div>Step 1: Receive email (Shared inbox) → 30 min <br> Step 2: Read &amp; classify (Manual) → 5 min <br> Step 3: Draft reply (Word) → 12 min</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="prompt-pill" style="border-left-color:#0E7490; padding:14px 18px;">
+                <div class="pill-icon" style="background:#0E7490; width:40px; height:40px; font-size:16px;">02</div>
+                <div style="flex:1;">
+                    <div class="pill-title">IDENTIFY — Highlight the Pain Points</div>
+                    <div class="pill-desc">Mark steps that are: slow (&gt;5 min), error-prone (mistakes happen often), repetitive (same task done daily/weekly), or bottlenecks (team waits for this step).</div>
+                    <div class="step-example"><div class="ex-label">Example output</div>🔴 Pain: Step 3 "Draft reply" — 12 min per email × 50 emails/day = 10 hrs wasted. High repetition, inconsistent quality across the team.</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="prompt-pill" style="border-left-color:#7C3AED; padding:14px 18px;">
+                <div class="pill-icon" style="background:#7C3AED; width:40px; height:40px; font-size:16px;">03</div>
+                <div style="flex:1;">
+                    <div class="pill-title">DESIGN — Build the Table &amp; Draw the Workflow</div>
+                    <div class="pill-desc">Create a Before/After mapping table for each process step (who does it, how long, manual vs. AI). Then draw the new workflow: Trigger → AI Agent(s) → Human-in-the-Loop gate → Output.</div>
+                    <div class="step-example"><div class="ex-label">Example output</div>📋 Table: Step 3 "Draft reply" — Manual: 12 min (Agent) → AI: 30 sec (ChatGPT) → Human reviews. | Workflow: 📧 Email → 🤖 AI Draft → 👤 Review → ✅ Send</div>
+                </div>
+            </div>
+        </div>
+        <!-- Progress bar -->
+        <div class="col-12" style="display:flex; align-items:center; gap:8px;">
+            <div style="height:5px; flex:1; background:#1E3A8A; border-radius:3px;"></div>
+            <div style="height:5px; flex:1; background:#0E7490; border-radius:3px;"></div>
+            <div style="height:5px; flex:1; background:#7C3AED; border-radius:3px;"></div>
+            <div style="height:5px; flex:1; background:var(--bg-light); border-radius:3px;"></div>
+            <div style="height:5px; flex:1; background:var(--bg-light); border-radius:3px;"></div>
+            <span style="font-size:11px; color:var(--text-muted); white-space:nowrap; margin-left:6px;">Steps 4–5 on next slide →</span>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 13 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 14 – STEP GUIDE PART 2 (Steps 4–5) ═══ -->
+<section class="slide" id="slide-14">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Activity 2 · Step-by-Step Guide · Part 2 of 2</div>
+            <div class="slide-title">How to Complete Activity 2 — ANALYSE &amp; AUTOMATE</div>
+        </div>
+        <span class="time-chip">Steps 4 – 5 of 5</span>
+    </div>
+    <div class="slide-body" style="align-content:start; gap:14px;">
+        <div class="col-12">
+            <div class="prompt-pill" style="border-left-color:#059669; padding:14px 18px;">
+                <div class="pill-icon" style="background:#059669; width:40px; height:40px; font-size:16px;">04</div>
+                <div style="flex:1;">
+                    <div class="pill-title">ANALYSE — Evaluate Agent Functions &amp; Extract Insights</div>
+                    <div class="pill-desc">For each AI agent in your workflow: describe what it does, what input it needs, what output it produces, and what human decision it supports. Then state the key insight and quantify the benefit.</div>
+                    <div class="step-example"><div class="ex-label">Example output</div>🤖 Agent 1: Email Classifier — Input: raw email | Task: detect intent + urgency | Output: priority tag | Insight: removes 30 min of manual triage | Benefit: 100% emails handled instantly, 24/7</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="prompt-pill" style="border-left-color:#92400E; padding:14px 18px;">
+                <div class="pill-icon" style="background:#92400E; width:40px; height:40px; font-size:16px;">05</div>
+                <div style="flex:1;">
+                    <div class="pill-title">AUTOMATE — Define Your Automation Plan</div>
+                    <div class="pill-desc">Specify: which AI tool handles which step, what prompt template to use, how success will be measured (KPI), and a 4-week pilot timeline before full rollout.</div>
+                    <div class="step-example"><div class="ex-label">Example output</div>Tool: ChatGPT Team · Prompt: Role + Context + Task + Constraints · KPI: Response time &lt;5 min · Pilot: CS team, 4 weeks · Target: 60% time saved</div>
+                </div>
+            </div>
+        </div>
+        <!-- 3-column deliverable summary -->
+        <div class="col-12" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:4px;">
+            <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:12px 14px;">
+                <div style="font-size:11px; font-weight:800; color:#1E40AF; margin-bottom:8px; letter-spacing:0.5px;">📋 YOUR DELIVERABLE</div>
+                <ul class="plist sm" style="color:#1E40AF;">
+                    <li>Before/After table (Step 3 · Design)</li>
+                    <li>Workflow diagram with agents</li>
+                    <li>Agent analysis &amp; benefit summary</li>
+                </ul>
+            </div>
+            <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:8px; padding:12px 14px;">
+                <div style="font-size:11px; font-weight:800; color:#92400E; margin-bottom:8px; letter-spacing:0.5px;">⏱ TIME BUDGET</div>
+                <ul class="plist sm" style="color:#92400E;">
+                    <li>Steps 1–3 (Map, Identify, Design): ~10 min</li>
+                    <li>Steps 4–5 (Analyse, Automate): ~15 min</li>
+                    <li>Prep 5-min presentation: ~5 min</li>
+                </ul>
+            </div>
+            <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:12px 14px;">
+                <div style="font-size:11px; font-weight:800; color:#15803D; margin-bottom:8px; letter-spacing:0.5px;">✅ SUCCESS CRITERIA</div>
+                <ul class="plist sm" style="color:#15803D;">
+                    <li>Every AI agent has a human checkpoint</li>
+                    <li>Benefits are estimated &amp; quantified</li>
+                    <li>Start with one team, one process only</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 14 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 15 – TEA BREAK ═══ -->
+<section class="slide break-slide" id="slide-15">
+    <div style="font-size:72px; margin-bottom:20px;">☕</div>
+    <h1>Tea Break</h1>
+    <p>15 Minutes</p>
+    <p style="margin-top:16px; font-size:16px;">Finalise your workflow diagram — presentations begin at 14:45!</p>
+    <div style="margin-top:32px; display:flex; gap:24px; justify-content:center;">
+        <div style="background:rgba(255,255,255,0.1); border-radius:8px; padding:14px 24px; text-align:center;">
+            <div style="font-size:22px; font-weight:700; color:var(--accent-cyan);">14:45</div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.7); margin-top:4px;">Presentations Start</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1); border-radius:8px; padding:14px 24px; text-align:center;">
+            <div style="font-size:22px; font-weight:700; color:var(--accent-cyan);">10 min</div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.7); margin-top:4px;">Max per Team</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SLIDE 16 – TEAM PRESENTATIONS ═══ -->
+<section class="slide" id="slide-16">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Activity 2 Presentations</div>
+            <div class="slide-title">Team Presentations &amp; Open Discussion</div>
+        </div>
+        <span class="time-chip">Max 10 Min / Team</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:16px;">
+        <div class="col-7" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="font-size:13px; font-weight:700; color:var(--dark-navy); text-transform:uppercase; letter-spacing:1px;">Each Team Must Present:</div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="background:var(--primary-blue); color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0;">1</div>
+                <div class="card" style="flex:1; padding:12px 16px; border-top:none; border-left:4px solid var(--primary-blue);">
+                    <h3 style="font-size:14px;">Current Business Process</h3>
+                    <p>Walk through the process as it exists today — steps, time, who is involved, and what tools are used.</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="background:#DC2626; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0;">2</div>
+                <div class="card" style="flex:1; padding:12px 16px; border-top:none; border-left:4px solid #DC2626;">
+                    <h3 style="font-size:14px;">Key Pain Points &amp; Bottlenecks</h3>
+                    <p>Highlight the slowest, most error-prone, and most repetitive steps. Quantify the time wasted if possible.</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="background:#059669; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0;">3</div>
+                <div class="card" style="flex:1; padding:12px 16px; border-top:none; border-left:4px solid #059669;">
+                    <h3 style="font-size:14px;">Proposed AI-Powered Workflow</h3>
+                    <p>Present your redesigned workflow diagram, AI tools selected, Human-in-the-Loop gates, and expected time savings.</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="background:#F59E0B; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0;">4</div>
+                <div class="card" style="flex:1; padding:12px 16px; border-top:none; border-left:4px solid #F59E0B;">
+                    <h3 style="font-size:14px;">Expected Business Benefits &amp; ROI</h3>
+                    <p>Estimate: hours saved per week, error reduction, faster response times, and any other measurable value.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-5">
+            <div class="card" style="height:100%; border-top-color:#8B5CF6;">
+                <h3 style="color:#7C3AED;">💬 Open Discussion After Each Team</h3>
+                <p style="margin-bottom:12px; font-size:13px;">All other teams are encouraged to:</p>
+                <ul class="plist sm">
+                    <li>Ask questions about the proposed AI use case</li>
+                    <li>Suggest improvements to the workflow design</li>
+                    <li>Share similar pain points from their own departments</li>
+                    <li>Challenge: is AI the right solution here — or is there a better approach?</li>
+                    <li>Identify potential risks and where Human-in-the-Loop is critical</li>
+                </ul>
+                <div style="margin-top:14px; background:#F5F3FF; border-radius:6px; padding:10px 14px;">
+                    <p style="font-size:12px; color:#7C3AED;"><strong>Facilitator Note:</strong> Push teams to quantify impact. "How many hours per week?" is more powerful than "it saves time."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 16 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 17 – Q&A SESSION ═══ -->
+<section class="slide" id="slide-17">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 06</div>
+            <div class="slide-title">Interactive Q&amp;A Session</div>
+        </div>
+        <span class="time-chip">30 Minutes · Open Floor</span>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:16px;">
+        <div class="col-12" style="text-align:center; margin-bottom:-4px;">
+            <p style="font-size:15px; color:var(--text-muted);">Share your pain points · Ask anything · No wrong questions</p>
+        </div>
+        <div class="col-4">
+            <div class="card" style="border-top-color:#0E7490; height:100%;">
+                <h3 style="color:#0E7490;">🤖 About AI Tools</h3>
+                <ul class="plist sm" style="margin-top:8px;">
+                    <li>"Which AI tool is best for my specific task?"</li>
+                    <li>"How do I write better prompts for [use case]?"</li>
+                    <li>"What's the difference between ChatGPT and Claude?"</li>
+                    <li>"Can AI integrate with our existing systems?"</li>
+                </ul>
+                <div style="margin-top:12px; background:#ECFEFF; border-radius:6px; padding:8px 12px;">
+                    <p style="font-size:12px; color:#0E7490;">Ask the trainer to demo anything live right now!</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="border-top-color:#7C3AED; height:100%;">
+                <h3 style="color:#7C3AED;">💼 About Your Department</h3>
+                <ul class="plist sm" style="margin-top:8px;">
+                    <li>"Can AI help with [specific task I do daily]?"</li>
+                    <li>"We have [X pain point] — what AI solution fits?"</li>
+                    <li>"How do we handle [specific data sensitivity issue]?"</li>
+                    <li>"What's the realistic first step for our team?"</li>
+                </ul>
+                <div style="margin-top:12px; background:#F5F3FF; border-radius:6px; padding:8px 12px;">
+                    <p style="font-size:12px; color:#7C3AED;">Describe your situation — the group will brainstorm together!</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="border-top-color:#059669; height:100%;">
+                <h3 style="color:#059669;">🚀 About Next Steps</h3>
+                <ul class="plist sm" style="margin-top:8px;">
+                    <li>"How do we get management buy-in for AI adoption?"</li>
+                    <li>"What's the realistic timeline to see results?"</li>
+                    <li>"How do we build an AI policy for our company?"</li>
+                    <li>"Which quick win should we start with this week?"</li>
+                </ul>
+                <div style="margin-top:12px; background:#F0FDF4; border-radius:6px; padding:8px 12px;">
+                    <p style="font-size:12px; color:#059669;">Identify your #1 AI action item for the next 7 days!</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div style="background:#0F172A; border-radius:8px; padding:14px 24px; display:flex; align-items:center; gap:16px;">
+                <div style="font-size:28px;">🎯</div>
+                <p style="color:rgba(255,255,255,0.8); font-size:13px;"><strong style="color:var(--accent-cyan);">Your Challenge:</strong> Before leaving today, write down ONE specific AI use case you will try in your work within the next 7 days. Share it with your team lead this week.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 17 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 18 – CLOSING REMARKS ═══ -->
+<section class="slide" id="slide-18">
+    <div class="slide-header">
+        <div>
+            <div class="slide-subtitle">Session 07</div>
+            <div class="slide-title">Closing Remarks &amp; Day Summary</div>
+        </div>
+    </div>
+    <div class="slide-body" style="align-content:center; gap:14px;">
+        <div class="col-12">
+            <div class="quote-block">
+                <p>"The companies that win the next decade will not be those with the most AI — they will be those whose people know how to use AI most effectively."</p>
+                <span>AI Training Workshop · July 28, 2026</span>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card" style="border-top-color:#10B981; height:100%;">
+                <h3>✅ What We Covered Today</h3>
+                <ul class="plist sm" style="margin-top:6px;">
+                    <li><strong>Morning:</strong> What is AI, AI Timeline, Landscape</li>
+                    <li><strong>Morning:</strong> Prompt Template (5 components)</li>
+                    <li><strong>Morning:</strong> Activity 1 — AI Challenge</li>
+                    <li><strong>Afternoon:</strong> AI in Business — CRM Scenario</li>
+                    <li><strong>Afternoon:</strong> 5-Step Framework + Workflow</li>
+                    <li><strong>Afternoon:</strong> Risks, Golden Rules, Activity 2</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="card" style="border-top-color:var(--accent-cyan); height:100%;">
+                <h3>📊 Feedback Poll</h3>
+                <p style="margin-bottom:10px;">Sshare your feedback — it directly shapes our next session.</p>
+                <ul class="plist sm">
+                    <li>What was most valuable today?</li>
+                    <li>What topic needs more depth?</li>
+                    <li>What AI use case will you try first?</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="slide-footer"><span>AI Training Workshop – Afternoon Session</span><span>Slide 18 of 19</span></div>
+</section>
+
+<!-- ═══ SLIDE 19 – THANK YOU ═══ -->
+<section class="slide closing-slide" id="slide-19">
+    <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 20% 50%, rgba(0,188,242,0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(0,120,212,0.15) 0%, transparent 55%);pointer-events:none;"></div>
+    <div style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;">
+        <div style="font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--accent-cyan); margin-bottom:20px;">AI Training Workshop · Afternoon Session</div>
+        <h1 style="font-size:72px; font-weight:800; color:white; line-height:1; margin-bottom:8px;">Thank You!</h1>
+        <p style="font-size:22px; color:rgba(255,255,255,0.7); margin-bottom:48px; font-weight:300;">You've completed the full-day AI Training Workshop.</p>
+        <div style="width:60px; height:3px; background:var(--accent-cyan); border-radius:2px; margin-bottom:48px;"></div>
+        <div style="display:flex; gap:48px; margin-bottom:48px;">
+            <div style="text-align:center;">
+                <div style="font-size:32px; margin-bottom:8px;">🧠</div>
+                <div style="font-size:15px; font-weight:700; color:white; margin-bottom:4px;">You Now Know</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6);">What AI is &amp; how to use it</div>
+            </div>
+            <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
+            <div style="text-align:center;">
+                <div style="font-size:32px; margin-bottom:8px;">✍️</div>
+                <div style="font-size:15px; font-weight:700; color:white; margin-bottom:4px;">You Can Now Write</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6);">Structured, effective prompts</div>
+            </div>
+            <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
+            <div style="text-align:center;">
+                <div style="font-size:32px; margin-bottom:8px;">⚙️</div>
+                <div style="font-size:15px; font-weight:700; color:white; margin-bottom:4px;">You Can Now Design</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6);">AI-powered business workflows</div>
+            </div>
+            <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
+            <div style="text-align:center;">
+                <div style="font-size:32px; margin-bottom:8px;">🛡️</div>
+                <div style="font-size:15px; font-weight:700; color:white; margin-bottom:4px;">You Know the Risks</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6);">And how to use AI responsibly</div>
+            </div>
+        </div>
+        <div style="background:rgba(0,188,242,0.15); border:1px solid rgba(0,188,242,0.4); border-radius:8px; padding:14px 36px; font-size:15px; color:rgba(255,255,255,0.85); font-style:italic;">
+            "AI is not the future — it is the present. Your journey starts today."
+        </div>
+    </div>
+</section>
+
+<script>
+    let cur = 1;
+    const total = 19;
+
+    function showSlide(n) {
+        if (n < 1 || n > total) return;
+        document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+        const t = document.getElementById('slide-' + n);
+        if (t) { t.classList.add('active'); cur = n; }
+        document.getElementById('slideCounter').textContent = cur + ' / ' + total;
+    }
+
+    function nextSlide(e) { if(e) e.stopPropagation(); showSlide(cur + 1); }
+    function prevSlide(e) { if(e) e.stopPropagation(); showSlide(cur - 1); }
+    function goToSlide(n) { showSlide(n); }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+        else if (e.key === 'ArrowLeft') prevSlide();
+        else if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    });
+
+    function toggleFullscreen(e) {
+        if (e) e.stopPropagation();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    document.addEventListener('fullscreenchange', function() {
+        const btn = document.getElementById('fsBtn');
+        if (btn) btn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Full Screen';
+        fitSlide();
+    });
+
+    function fitSlide() {
+        const sx = window.innerWidth / 1280;
+        const sy = window.innerHeight / 720;
+        document.documentElement.style.setProperty('--scale', Math.min(sx, sy) * 0.96);
+    }
+
+    window.addEventListener('resize', fitSlide);
+    fitSlide();
+</script>
+</body>
+</html>

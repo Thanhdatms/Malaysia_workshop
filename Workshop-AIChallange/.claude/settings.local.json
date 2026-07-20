@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(./venv/Scripts/python -c ' *)",
+      "PowerShell(Stop-Process -Id 27764 -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process -Id 27764 -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

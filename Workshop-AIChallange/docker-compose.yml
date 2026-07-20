@@ -1,0 +1,45 @@
+# Production stack for the AI Challenge workshop app: one EC2 instance,
+# one container serving frontend+backend, one self-hosted Postgres
+# container (no external DB service). Config comes from a ".env" file in
+# this same directory - copy .env.production.example to .env and fill it
+# in before running `docker compose up -d --build`.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-workshop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-workshop}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-workshop} -d ${POSTGRES_DB:-workshop}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-workshop}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-workshop}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_API_BASE: ${DEEPSEEK_API_BASE:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+    ports:
+      - "80:8000"
+    volumes:
+      # Persists uploaded/seeded attachment files across container rebuilds.
+      - uploads_data:/app/backend/data
+
+volumes:
+  pgdata:
+  uploads_data:
