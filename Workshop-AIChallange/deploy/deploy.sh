@@ -46,9 +46,21 @@ $SSH_CMD "$EC2_USER@$EC2_HOST" "cd $REMOTE_DIR && docker compose up -d --build"
 echo "==> Recent app logs:"
 $SSH_CMD "$EC2_USER@$EC2_HOST" "cd $REMOTE_DIR && docker compose logs --tail=40 app"
 
+SITE_DOMAIN=$($SSH_CMD "$EC2_USER@$EC2_HOST" "grep -m1 '^SITE_DOMAIN=' $REMOTE_DIR/.env | cut -d= -f2-" || true)
+
 cat <<EOF
 
 Deployment complete.
+EOF
+if [ -n "$SITE_DOMAIN" ]; then
+  cat <<EOF
+  App:   https://$SITE_DOMAIN/
+  Admin: https://$SITE_DOMAIN/admin
+(Caddy needs a minute on first run to obtain the Let's Encrypt cert.)
+EOF
+else
+  cat <<EOF
   App:   http://$EC2_HOST/
   Admin: http://$EC2_HOST/admin
 EOF
+fi

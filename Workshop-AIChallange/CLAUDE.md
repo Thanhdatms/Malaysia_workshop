@@ -334,9 +334,13 @@ self-hosted in a container on that same instance — no RDS or other external se
   (`npm run build`), stage 2 installs the FastAPI backend and copies the built frontend into
   `frontend/dist` alongside it, so the same static-file mount/SPA-fallback logic in
   `backend/app/main.py` works unchanged inside the container.
-- `docker-compose.yml` (repo root) defines two services: `app` (the image above, port 8000
-  published as `80` on the host) and `db` (`postgres:16-alpine` with a named volume for
-  durable storage). `app` gets `DATABASE_URL` pointed at `db` automatically.
+- `docker-compose.yml` (repo root) defines three services: `app` (the image above, port 8000
+  exposed only on the docker network, not published to the host), `db` (`postgres:16-alpine`
+  with a named volume for durable storage), and `caddy` (`caddy:2-alpine`, publishes `80`/`443`
+  on the host and reverse-proxies to `app:8000`). `app` gets `DATABASE_URL` pointed at `db`
+  automatically. Caddy auto-obtains a Let's Encrypt HTTPS cert for `SITE_DOMAIN` (set in `.env`)
+  on first boot — no domain of your own needed, [sslip.io](https://sslip.io) works (e.g.
+  `54-153-195-100.sslip.io` resolves straight to that IP). Config: `deploy/Caddyfile`.
 - `backend/app/database.py` picks Postgres when `DATABASE_URL` is set (production/docker) and
   falls back to the local sqlite file when it's empty (local dev unchanged) — see
   `backend/app/config.py` for where `DATABASE_URL` is read.
@@ -352,17 +356,22 @@ self-hosted in a container on that same instance — no RDS or other external se
    22/80/443):
    `ssh -i <key>.pem ubuntu@<ip> 'bash -s' < deploy/bootstrap_ec2.sh`
 3. Copy `.env.production.example` to `.env` on the server (in the same folder as
-   `docker-compose.yml`) and fill in `POSTGRES_PASSWORD`, `ADMIN_TOKEN`, and (optionally)
-   `DEEPSEEK_API_KEY`.
+   `docker-compose.yml`) and fill in `POSTGRES_PASSWORD`, `ADMIN_TOKEN`, `SITE_DOMAIN` (a
+   domain — or an [sslip.io](https://sslip.io) hostname derived from the instance's public IP —
+   pointed at this instance, used by Caddy for HTTPS), and (optionally) `DEEPSEEK_API_KEY`.
+4. Make sure the instance's security group allows inbound `443` (HTTPS) as well as `80`/`22` —
+   `bootstrap_ec2.sh` only opens these via `ufw` on the instance itself; on EC2 the AWS security
+   group is the actual firewall and needs the same ports opened there too.
 
 **Deploy / redeploy:**
 ```
 EC2_HOST=<public-ip> EC2_USER=ubuntu SSH_KEY=<path-to-key>.pem ./deploy/deploy.sh
 ```
 This rsyncs the project to the server and runs `docker compose up -d --build`. It only
-recreates the `app` container — the `db` container and its volume are untouched, so team data
-survives every redeploy. The app is then reachable at `http://<public-ip>/` and the facilitator
-dashboard at `http://<public-ip>/admin`.
+recreates the `app` container — the `db` container and its volume (and Caddy's cert volume)
+are untouched, so team data and the HTTPS cert both survive every redeploy. The app is then
+reachable at `https://<SITE_DOMAIN>/` and the facilitator dashboard at
+`https://<SITE_DOMAIN>/admin` (allow Caddy a minute on first boot to obtain the cert).
 
 ## 14. Open items / to confirm with user
 
