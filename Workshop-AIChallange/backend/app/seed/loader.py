@@ -53,6 +53,11 @@ def seed_if_empty(session: Session) -> None:
                 )
             )
 
+    # Flush so Question rows are written before PromptTemplate rows are
+    # added below - there's no ORM relationship() linking them, so
+    # SQLAlchemy has no implicit cross-table insert ordering to rely on.
+    session.flush()
+
     for t in TEMPLATES:
         session.add(
             PromptTemplate(
